@@ -227,24 +227,32 @@ const GameLevel: React.FC = () => {
       )}
       {/* Completion Overlay */}
       {currentPhase === 'complete' && (
-        <div className="absolute inset-0 z-20 bg-black/80 backdrop-blur-sm flex items-center justify-center">
-          <div className="bg-white/10 backdrop-blur-sm rounded-xl p-8 max-w-md mx-4 border border-purple-500/30 text-center">
-            <div className="text-6xl mb-4">🎉</div>
-            <h2 className="text-2xl font-bold text-white mb-4">Quest Complete!</h2>
-            <p className="text-gray-300 mb-6">
+        <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-center justify-center">
+          <div className="bg-white/10 backdrop-blur-sm rounded-xl p-6 max-w-sm mx-4 border border-purple-500/30 text-center relative">
+            {/* Close Button */}
+            <button
+              onClick={() => setCurrentPhase('intro')}
+              className="absolute top-2 right-2 text-white bg-black/30 hover:bg-black/60 rounded-full p-1 shadow transition-colors"
+              aria-label="Close completion"
+            >
+              ×
+            </button>
+            <div className="text-4xl mb-3">🎉</div>
+            <h2 className="text-xl font-bold text-white mb-3">Quest Complete!</h2>
+            <p className="text-gray-300 mb-4 text-sm">
               You've successfully mastered {levelInfo.algorithm}!
             </p>
-            <div className="space-y-4">
+            <div className="space-y-3">
               <button
                 onClick={() => navigate('/')}
-                className="w-full bg-purple-600 hover:bg-purple-700 text-white px-6 py-3 rounded-lg transition-colors"
+                className="w-full bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg transition-colors text-sm"
               >
                 Return to Academy
               </button>
               {levelIdNum < 5 && (
                 <button
                   onClick={() => navigate(`/level/${levelIdNum + 1}`)}
-                  className="w-full bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg transition-colors"
+                  className="w-full bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors text-sm"
                 >
                   Next Quest
                 </button>
