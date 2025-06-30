@@ -67,6 +67,12 @@ const GameUI: React.FC<GameUIProps> = React.memo(({ level, isGameActive }) => {
             >
               Next Level
             </button>
+            <button
+              onClick={() => window.location.reload()}
+              className="mt-4 px-6 py-2 bg-gray-600 hover:bg-gray-700 text-white rounded-lg font-semibold shadow ml-2"
+            >
+              Replay
+            </button>
           </div>
         </div>
       )}
