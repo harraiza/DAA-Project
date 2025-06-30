@@ -248,8 +248,33 @@ export class FibonacciScene extends Phaser.Scene {
         if (this.textures.exists('magic-star')) return;
         const g = this.add.graphics();
         g.fillStyle(0xffe066, 1);
-        g.fillStar(16, 16, 5, 8, 16);
+        drawStar(g, 16, 16, 5, 16, 8);
         g.generateTexture('magic-star', 32, 32);
         g.destroy();
     }
+}
+
+// Helper function to draw a star using Phaser's Graphics API
+function drawStar(graphics: Phaser.GameObjects.Graphics, cx: number, cy: number, spikes: number, outerRadius: number, innerRadius: number) {
+    let rot = Math.PI / 2 * 3;
+    let x = cx;
+    let y = cy;
+    let step = Math.PI / spikes;
+
+    graphics.beginPath();
+    graphics.moveTo(cx, cy - outerRadius);
+    for (let i = 0; i < spikes; i++) {
+        x = cx + Math.cos(rot) * outerRadius;
+        y = cy + Math.sin(rot) * outerRadius;
+        graphics.lineTo(x, y);
+        rot += step;
+
+        x = cx + Math.cos(rot) * innerRadius;
+        y = cy + Math.sin(rot) * innerRadius;
+        graphics.lineTo(x, y);
+        rot += step;
+    }
+    graphics.lineTo(cx, cy - outerRadius);
+    graphics.closePath();
+    graphics.fillPath();
 } 
