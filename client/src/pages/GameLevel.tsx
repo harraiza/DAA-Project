@@ -133,34 +133,39 @@ const GameLevel: React.FC = () => {
           </button>
         )}
       </div>
-      {/* Game Window and Controls */}
+      {/* Game Canvas and Overlayed Start/Reset Button */}
       <div className="relative w-full max-w-4xl flex flex-col items-center z-10">
-        {/* Game Canvas */}
-        <div className="w-full aspect-[16/9] bg-black rounded-xl overflow-hidden shadow-2xl flex items-center justify-center relative z-10">
-          <GameCanvas
-            level={currentLevel}
-            onGameEnd={handleGameEnd}
-          />
-        </div>
-        {/* Game Controls Bar (bottom of game window) */}
-        <div className="w-full flex justify-center space-x-4 mt-4 mb-2 z-20">
-          {!isGameActive ? (
+        {/* Game Canvas: Only mount when game is active */}
+        {isGameActive && (
+          <div className="w-full aspect-[16/9] bg-black rounded-xl overflow-hidden shadow-2xl flex items-center justify-center relative z-10">
+            <GameCanvas
+              level={currentLevel}
+              onGameEnd={handleGameEnd}
+            />
+          </div>
+        )}
+        {/* Overlay Start Button when not active */}
+        {!isGameActive && !showTutorial && (
+          <div className="absolute inset-0 flex items-center justify-center z-30">
             <button
               onClick={startGame}
-              className="flex items-center space-x-2 bg-gradient-to-r from-green-500 to-green-700 hover:from-green-600 hover:to-green-800 text-white px-4 py-2 rounded-lg shadow-md transition-colors"
+              className="flex flex-col items-center justify-center bg-gradient-to-r from-green-500 to-green-700 hover:from-green-600 hover:to-green-800 text-white px-10 py-6 rounded-2xl shadow-2xl text-3xl font-bold border-4 border-white/30 focus:outline-none focus:ring-4 focus:ring-green-400"
             >
-              <PlayIcon className="h-5 w-5" />
-              <span>Start</span>
+              <PlayIcon className="h-10 w-10 mb-2" />
+              Start
             </button>
-          ) : null}
+          </div>
+        )}
+        {/* Reset button (bottom right) when game is active */}
+        {isGameActive && (
           <button
             onClick={resetGame}
-            className="flex items-center space-x-2 bg-gradient-to-r from-gray-500 to-gray-700 hover:from-gray-600 hover:to-gray-800 text-white px-4 py-2 rounded-lg shadow-md transition-colors"
+            className="fixed bottom-12 right-12 z-40 flex items-center space-x-2 bg-gradient-to-r from-gray-500 to-gray-700 hover:from-gray-600 hover:to-gray-800 text-white px-6 py-3 rounded-lg shadow-lg text-lg font-semibold transition-colors"
           >
-            <ArrowPathIcon className="h-5 w-5" />
+            <ArrowPathIcon className="h-6 w-6" />
             <span>Reset</span>
           </button>
-        </div>
+        )}
         {/* Tutorial Overlay */}
         {showTutorial && (
           <div className="absolute inset-0 z-40 bg-black/70 backdrop-blur-sm flex items-center justify-center">
@@ -248,22 +253,6 @@ const GameLevel: React.FC = () => {
           </div>
         </div>
       )}
-      {/* Debug Next Level Button */}
-      <div className="w-full flex justify-center mt-8">
-        <button
-          onClick={() => {
-            const nextLevel = state.levels.find(l => l.id === levelIdNum + 1 && l.isUnlocked);
-            if (nextLevel) {
-              navigate(`/level/${nextLevel.id}`);
-            } else {
-              alert('Next level is not unlocked yet!');
-            }
-          }}
-          className="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-semibold shadow"
-        >
-          Debug: Go to Next Level
-        </button>
-      </div>
     </div>
   );
 };
