@@ -282,6 +282,17 @@ const GameLevel: React.FC = () => {
                   Next Quest
                 </button>
               )}
+              <button
+                onClick={() => {
+                  setIsGameActive(false);
+                  setShowTutorial(true);
+                  setCurrentPhase('intro');
+                  dispatch({ type: 'UPDATE_SCORE', payload: 0 });
+                }}
+                className="w-full bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg transition-colors text-sm"
+              >
+                Replay
+              </button>
             </div>
           </div>
         </div>
