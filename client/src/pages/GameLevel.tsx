@@ -52,8 +52,7 @@ const GameLevel: React.FC = () => {
       navigate('/');
       return;
     }
-    
-    // Reset game state when navigating to a new level
+    // Always reset game state (including currentPhase) when navigating to a new level, even if completed
     setIsGameActive(false);
     setShowTutorial(true);
     setCurrentPhase('intro');
@@ -119,6 +118,9 @@ const GameLevel: React.FC = () => {
       console.log('Replaying completed level - no rewards given');
     }
   };
+
+  // Only show completion overlay if the player just finished the level in this session
+  const shouldShowCompletion = currentPhase === 'complete' && isGameActive === false;
 
   if (!currentLevel) {
     return (
@@ -246,10 +248,10 @@ const GameLevel: React.FC = () => {
       </div>
       {/* Game UI */}
       {isGameActive && (
-        <GameUI level={currentLevel} />
+        <GameUI level={currentLevel} isGameActive={isGameActive} />
       )}
       {/* Completion Overlay */}
-      {currentPhase === 'complete' && (
+      {shouldShowCompletion && (
         <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-center justify-center">
           <div className="bg-white/10 backdrop-blur-sm rounded-xl p-6 max-w-sm mx-4 border border-purple-500/30 text-center relative">
             {/* Close Button */}

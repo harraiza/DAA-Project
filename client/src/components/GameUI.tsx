@@ -5,9 +5,10 @@ import { useNavigate } from 'react-router-dom';
 
 interface GameUIProps {
   level: GameLevel;
+  isGameActive: boolean;
 }
 
-const GameUI: React.FC<GameUIProps> = React.memo(({ level }) => {
+const GameUI: React.FC<GameUIProps> = React.memo(({ level, isGameActive }) => {
   const { state } = useGame();
   const navigate = useNavigate();
 
@@ -31,20 +32,22 @@ const GameUI: React.FC<GameUIProps> = React.memo(({ level }) => {
         <span className="text-white font-bold text-lg">Level {level.id}: {level.title}</span>
       </div>
       {/* Right Side Progress Bar (only show when game is active) */}
-      <div className="fixed top-32 right-8 z-20 flex flex-col items-center">
-        <span className="text-white text-xs mb-2">Progress</span>
-        <div className="w-3 h-48 bg-gray-700 rounded-full overflow-hidden border border-blue-400 shadow-inner flex flex-col justify-end">
-          <div
-            className="w-full bg-gradient-to-t from-green-400 to-blue-500 rounded-b-full transition-all duration-300 shadow"
-            style={{ 
-              height: `${Math.min(100, (state.score / (level.maxScore || 100)) * 100)}%` 
-            }}
-          />
+      {isGameActive && (
+        <div className="fixed top-32 right-8 z-20 flex flex-col items-center">
+          <span className="text-white text-xs mb-2">Progress</span>
+          <div className="w-3 h-48 bg-gray-700 rounded-full overflow-hidden border border-blue-400 shadow-inner flex flex-col justify-end">
+            <div
+              className="w-full bg-gradient-to-t from-green-400 to-blue-500 rounded-b-full transition-all duration-300 shadow"
+              style={{ 
+                height: `${Math.min(100, (state.score / (level.maxScore || 100)) * 100)}%` 
+              }}
+            />
+          </div>
+          <div className="text-white text-xs mt-2 text-center">
+            {state.score}/{level.maxScore || 100}
+          </div>
         </div>
-        <div className="text-white text-xs mt-2 text-center">
-          {state.score}/{level.maxScore || 100}
-        </div>
-      </div>
+      )}
       {/* Level Complete Modal */}
       {level.isCompleted && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-70">
