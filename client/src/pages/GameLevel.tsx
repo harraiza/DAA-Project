@@ -119,6 +119,14 @@ const GameLevel: React.FC = () => {
     }
   };
 
+  // Handler to reset game state for replay
+  const handleReplay = () => {
+    setIsGameActive(false);
+    setShowTutorial(true);
+    setCurrentPhase('intro');
+    dispatch({ type: 'UPDATE_SCORE', payload: 0 });
+  };
+
   // Only show completion overlay if the player just finished the level in this session
   const shouldShowCompletion = currentPhase === 'complete' && isGameActive === false;
 
@@ -248,7 +256,7 @@ const GameLevel: React.FC = () => {
       </div>
       {/* Game UI */}
       {isGameActive && (
-        <GameUI level={currentLevel} isGameActive={isGameActive} />
+        <GameUI level={currentLevel} isGameActive={isGameActive} onReplay={handleReplay} />
       )}
       {/* Completion Overlay */}
       {shouldShowCompletion && (

@@ -6,9 +6,10 @@ import { useNavigate } from 'react-router-dom';
 interface GameUIProps {
   level: GameLevel;
   isGameActive: boolean;
+  onReplay?: () => void;
 }
 
-const GameUI: React.FC<GameUIProps> = React.memo(({ level, isGameActive }) => {
+const GameUI: React.FC<GameUIProps> = React.memo(({ level, isGameActive, onReplay }) => {
   const { state } = useGame();
   const navigate = useNavigate();
 
@@ -68,7 +69,7 @@ const GameUI: React.FC<GameUIProps> = React.memo(({ level, isGameActive }) => {
               Next Level
             </button>
             <button
-              onClick={() => window.location.reload()}
+              onClick={onReplay}
               className="mt-4 px-6 py-2 bg-gray-600 hover:bg-gray-700 text-white rounded-lg font-semibold shadow ml-2"
             >
               Replay
