@@ -8,7 +8,7 @@ import {
 } from '@heroicons/react/24/outline';
 
 const GameDashboard: React.FC = () => {
-  const { state } = useGame();
+  const { state, dispatch } = useGame();
 
   const user = state.user || {
     username: 'Apprentice Mage',
@@ -265,7 +265,11 @@ const GameDashboard: React.FC = () => {
                   Return to Academy
                 </Link>
                 <button
-                  onClick={() => window.location.reload()}
+                  onClick={() => {
+                    if (window.confirm('Are you sure you want to reset all progress? This cannot be undone.')) {
+                      dispatch({ type: 'RESET_PROGRESS' });
+                    }
+                  }}
                   className="w-full bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg transition-colors"
                 >
                   Reset Progress
