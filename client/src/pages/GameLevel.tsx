@@ -10,6 +10,7 @@ import {
   PauseIcon,
   ArrowPathIcon
 } from '@heroicons/react/24/outline';
+import localStorageService from '../services/localStorage';
 
 const GameLevel: React.FC = () => {
   const { levelId } = useParams<{ levelId: string }>();
@@ -18,6 +19,7 @@ const GameLevel: React.FC = () => {
   const [isGameActive, setIsGameActive] = useState(false);
   const [showTutorial, setShowTutorial] = useState(true);
   const [currentPhase, setCurrentPhase] = useState<'intro' | 'tutorial' | 'gameplay' | 'boss' | 'complete'>('intro');
+  const [gameSession, setGameSession] = useState(() => localStorageService.getGameState(parseInt(levelId || '1')));
 
   const levelIdNum = parseInt(levelId || '1');
   const currentLevel = state.levels.find(l => l.id === levelIdNum);
@@ -86,26 +88,28 @@ const GameLevel: React.FC = () => {
     dispatch({ type: 'UPDATE_SCORE', payload: 0 });
   };
 
+  const updateGameSession = (score: number) => {
+    const newSession = { ...gameSession, currentScore: score };
+    setGameSession(newSession);
+    localStorageService.saveGameState(newSession);
+  };
+
   const handleGameEnd = (score: number) => {
     setIsGameActive(false);
     setCurrentPhase('complete');
-    
-    // Check if this level was already completed to prevent duplicate rewards
+    updateGameSession(score);
     const isReplay = currentLevel?.isCompleted || false;
-    
     if (!isReplay) {
-      // Only dispatch completion if this is the first time completing the level
       dispatch({ 
         type: 'COMPLETE_LEVEL', 
         payload: {
           levelId: levelIdNum,
           score,
-          timeSpent: 0, // TODO: track actual time
-          hintsUsed: 0  // TODO: track hints used
+          timeSpent: 0,
+          hintsUsed: 0
         }
       });
     } else {
-      // For replay, dispatch replay action without affecting progress
       dispatch({ 
         type: 'REPLAY_LEVEL', 
         payload: {
@@ -115,16 +119,15 @@ const GameLevel: React.FC = () => {
           hintsUsed: 0
         }
       });
-      console.log('Replaying completed level - no rewards given');
     }
   };
 
-  // Handler to reset game state for replay
   const handleReplay = () => {
     setIsGameActive(false);
     setShowTutorial(true);
     setCurrentPhase('intro');
-    dispatch({ type: 'UPDATE_SCORE', payload: 0 });
+    localStorageService.resetGameState(levelIdNum);
+    setGameSession(localStorageService.getGameState(levelIdNum));
   };
 
   // Only show completion overlay if the player just finished the level in this session
@@ -256,7 +259,7 @@ const GameLevel: React.FC = () => {
       </div>
       {/* Game UI */}
       {isGameActive && (
-        <GameUI level={currentLevel} isGameActive={isGameActive} onReplay={handleReplay} />
+        <GameUI level={currentLevel} isGameActive={isGameActive} onReplay={handleReplay} sessionScore={gameSession.currentScore} isReplay={currentLevel?.isCompleted} />
       )}
       {/* Completion Overlay */}
       {shouldShowCompletion && (
@@ -272,9 +275,14 @@ const GameLevel: React.FC = () => {
             </button>
             <div className="text-4xl mb-3">🎉</div>
             <h2 className="text-xl font-bold text-white mb-3">Quest Complete!</h2>
-            <p className="text-gray-300 mb-4 text-sm">
-              You've successfully mastered {levelInfo.algorithm}!
-            </p>
+            {currentLevel?.isCompleted ? (
+              <p className="text-gray-300 mb-4 text-sm">You've successfully mastered the level!</p>
+            ) : (
+              <>
+                <p className="text-gray-300 mb-4 text-sm">You've successfully completed the level!</p>
+                <p className="text-lg mb-2">Score: <span className="font-bold">{gameSession.currentScore}</span> / {currentLevel?.maxScore}</p>
+              </>
+            )}
             <div className="space-y-3">
               <button
                 onClick={() => navigate('/')}
@@ -295,7 +303,8 @@ const GameLevel: React.FC = () => {
                   setIsGameActive(false);
                   setShowTutorial(true);
                   setCurrentPhase('intro');
-                  dispatch({ type: 'UPDATE_SCORE', payload: 0 });
+                  localStorageService.resetGameState(levelIdNum);
+                  setGameSession(localStorageService.getGameState(levelIdNum));
                 }}
                 className="w-full bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg transition-colors text-sm"
               >

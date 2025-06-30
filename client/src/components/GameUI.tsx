@@ -7,19 +7,20 @@ interface GameUIProps {
   level: GameLevel;
   isGameActive: boolean;
   onReplay?: () => void;
+  sessionScore: number;
+  isReplay: boolean;
 }
 
-const GameUI: React.FC<GameUIProps> = React.memo(({ level, isGameActive, onReplay }) => {
-  const { state } = useGame();
+const GameUI: React.FC<GameUIProps> = React.memo(({ level, isGameActive, onReplay, sessionScore, isReplay }) => {
   const navigate = useNavigate();
 
   // Always show modal if level is completed
   const shouldShowModal = level.isCompleted;
 
   const handleNextLevel = () => {
-    const nextLevel = state.levels.find(l => l.id === level.id + 1);
-    if (nextLevel && nextLevel.isUnlocked) {
-      navigate(`/level/${nextLevel.id}`);
+    const nextLevel = level.id < 5 ? level.id + 1 : null;
+    if (nextLevel) {
+      navigate(`/level/${nextLevel}`);
     } else {
       navigate('/dashboard');
     }
@@ -40,12 +41,12 @@ const GameUI: React.FC<GameUIProps> = React.memo(({ level, isGameActive, onRepla
             <div
               className="w-full bg-gradient-to-t from-green-400 to-blue-500 rounded-b-full transition-all duration-300 shadow"
               style={{ 
-                height: `${Math.min(100, (state.score / (level.maxScore || 100)) * 100)}%` 
+                height: `${Math.min(100, (sessionScore / (level.maxScore || 100)) * 100)}%` 
               }}
             />
           </div>
           <div className="text-white text-xs mt-2 text-center">
-            {state.score}/{level.maxScore || 100}
+            {sessionScore}/{level.maxScore || 100}
           </div>
         </div>
       )}
@@ -54,16 +55,16 @@ const GameUI: React.FC<GameUIProps> = React.memo(({ level, isGameActive, onRepla
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-70">
           <div className="bg-white rounded-lg shadow-lg p-8 max-w-md w-full text-center">
             <h2 className="text-2xl font-bold mb-4 text-green-600">Level Complete!</h2>
-            <p className="text-lg mb-2">Score: <span className="font-bold">{level.score}</span> / {level.maxScore}</p>
+            {isReplay ? (
+              <p className="text-gray-300 mb-4 text-sm">You've successfully mastered the level!</p>
+            ) : (
+              <>
+                <p className="text-gray-300 mb-4 text-sm">You've successfully completed the level!</p>
+                <p className="text-lg mb-2">Score: <span className="font-bold">{sessionScore}</span> / {level.maxScore}</p>
+              </>
+            )}
             <button
-              onClick={() => {
-                const nextLevel = state.levels.find(l => l.id === level.id + 1 && l.isUnlocked);
-                if (nextLevel) {
-                  window.location.href = `/level/${nextLevel.id}`;
-                } else {
-                  window.location.href = '/dashboard';
-                }
-              }}
+              onClick={handleNextLevel}
               className="mt-4 px-6 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg font-semibold shadow"
             >
               Next Level

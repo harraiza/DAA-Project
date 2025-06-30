@@ -83,6 +83,13 @@ const STORAGE_KEYS = {
   SETTINGS: 'algorithm-quest-settings'
 };
 
+// Game state type
+export interface GameSessionState {
+  levelId: number;
+  currentScore: number;
+  // Add more session-specific fields as needed
+}
+
 class LocalStorageService {
   // Get user progress
   getUserProgress(): UserProgress {
@@ -271,6 +278,35 @@ class LocalStorageService {
       console.error('Error importing data:', error);
       return false;
     }
+  }
+
+  // Game session state methods
+  getGameState(levelId: number): GameSessionState {
+    try {
+      const stored = localStorage.getItem(STORAGE_KEYS.GAME_STATE + '-' + levelId);
+      if (stored) {
+        return JSON.parse(stored);
+      }
+      // Default session state
+      const defaultState: GameSessionState = { levelId, currentScore: 0 };
+      this.saveGameState(defaultState);
+      return defaultState;
+    } catch (error) {
+      console.error('Error loading game state:', error);
+      return { levelId, currentScore: 0 };
+    }
+  }
+
+  saveGameState(state: GameSessionState): void {
+    try {
+      localStorage.setItem(STORAGE_KEYS.GAME_STATE + '-' + state.levelId, JSON.stringify(state));
+    } catch (error) {
+      console.error('Error saving game state:', error);
+    }
+  }
+
+  resetGameState(levelId: number): void {
+    this.saveGameState({ levelId, currentScore: 0 });
   }
 }
 
