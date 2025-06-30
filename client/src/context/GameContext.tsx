@@ -125,6 +125,11 @@ function gameReducer(state: GameState, action: GameAction): GameState {
       console.log('Levels after sync:', updatedLevels);
       return { ...state, user: updatedUser, levels: updatedLevels };
     }
+    case 'REPLAY_LEVEL': {
+      // For replaying levels without affecting progress
+      console.log('Replaying level without rewards:', action.payload);
+      return { ...state };
+    }
     case 'SET_GAME_MODE':
       return { ...state, gameMode: action.payload };
     case 'START_GAME':

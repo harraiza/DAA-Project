@@ -36,8 +36,13 @@ const GameUI: React.FC<GameUIProps> = React.memo(({ level }) => {
         <div className="w-3 h-48 bg-gray-700 rounded-full overflow-hidden border border-blue-400 shadow-inner flex flex-col justify-end">
           <div
             className="w-full bg-gradient-to-t from-green-400 to-blue-500 rounded-b-full transition-all duration-300 shadow"
-            style={{ height: `${(level.maxScore ? state.score / level.maxScore : 0) * 100}%` }}
+            style={{ 
+              height: `${Math.min(100, (state.score / (level.maxScore || 100)) * 100)}%` 
+            }}
           />
+        </div>
+        <div className="text-white text-xs mt-2 text-center">
+          {state.score}/{level.maxScore || 100}
         </div>
       </div>
       {/* Level Complete Modal */}

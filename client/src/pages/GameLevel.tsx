@@ -53,6 +53,10 @@ const GameLevel: React.FC = () => {
       return;
     }
     
+    // Reset game state when navigating to a new level
+    setIsGameActive(false);
+    setShowTutorial(true);
+    setCurrentPhase('intro');
     dispatch({ type: 'SET_CURRENT_LEVEL', payload: levelIdNum });
   }, [levelIdNum, currentLevel, navigate, dispatch]);
 
@@ -86,15 +90,34 @@ const GameLevel: React.FC = () => {
   const handleGameEnd = (score: number) => {
     setIsGameActive(false);
     setCurrentPhase('complete');
-    dispatch({ 
-      type: 'COMPLETE_LEVEL', 
-      payload: {
-        levelId: levelIdNum,
-        score,
-        timeSpent: 0, // TODO: track actual time
-        hintsUsed: 0  // TODO: track hints used
-      }
-    });
+    
+    // Check if this level was already completed to prevent duplicate rewards
+    const isReplay = currentLevel?.isCompleted || false;
+    
+    if (!isReplay) {
+      // Only dispatch completion if this is the first time completing the level
+      dispatch({ 
+        type: 'COMPLETE_LEVEL', 
+        payload: {
+          levelId: levelIdNum,
+          score,
+          timeSpent: 0, // TODO: track actual time
+          hintsUsed: 0  // TODO: track hints used
+        }
+      });
+    } else {
+      // For replay, dispatch replay action without affecting progress
+      dispatch({ 
+        type: 'REPLAY_LEVEL', 
+        payload: {
+          levelId: levelIdNum,
+          score,
+          timeSpent: 0,
+          hintsUsed: 0
+        }
+      });
+      console.log('Replaying completed level - no rewards given');
+    }
   };
 
   if (!currentLevel) {
