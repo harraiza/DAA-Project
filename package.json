@@ -1,0 +1,24 @@
+{
+  "name": "algorithm-quest",
+  "version": "1.0.0",
+  "description": "A Game-Based Curriculum for Learning Design and Analysis of Algorithms",
+  "main": "client/src/index.tsx",
+  "scripts": {
+    "start": "cd client && npm start",
+    "dev": "cd client && npm start",
+    "build": "cd client && npm run build",
+    "test": "cd client && npm test",
+    "lint": "cd client && npm run lint"
+  },
+  "keywords": [
+    "algorithms",
+    "education",
+    "game",
+    "learning",
+    "computer-science",
+    "DAA",
+    "visualization"
+  ],
+  "author": "Algorithm Quest Team",
+  "license": "MIT"
+} 
