@@ -51,15 +51,15 @@ const GameUI: React.FC<GameUIProps> = React.memo(({ level, isGameActive, onRepla
         </div>
       )}
       {/* Level Complete Modal */}
-      {level.isCompleted && (
+      {/* {level.isCompleted && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-70">
           <div className="bg-white rounded-lg shadow-lg p-8 max-w-md w-full text-center">
             <h2 className="text-2xl font-bold mb-4 text-green-600">Level Complete!</h2>
             {isReplay ? (
-              <p className="text-gray-300 mb-4 text-sm">You've successfully mastered the level!</p>
+              <p className="text-gray-600 mb-4 text-sm">You've successfully mastered the level!</p>
             ) : (
               <>
-                <p className="text-gray-300 mb-4 text-sm">You've successfully completed the level!</p>
+                <p className="text-gray-600 mb-4 text-sm">You've successfully completed the level!</p>
                 <p className="text-lg mb-2">Score: <span className="font-bold">{sessionScore}</span> / {level.maxScore}</p>
               </>
             )}
@@ -77,7 +77,7 @@ const GameUI: React.FC<GameUIProps> = React.memo(({ level, isGameActive, onRepla
             </button>
           </div>
         </div>
-      )}
+      )} */}
     </>
   );
 });
