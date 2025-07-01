@@ -12,6 +12,63 @@ import {
 } from '@heroicons/react/24/outline';
 import localStorageService from '../services/localStorage';
 
+// --- Level Complete Modal ---
+const LevelCompleteModal: React.FC<{
+  open: boolean;
+  onClose: () => void;
+  onNext: () => void;
+  onReplay: () => void;
+  isReplay: boolean;
+  score: number;
+  maxScore: number;
+}> = ({ open, onClose, onNext, onReplay, isReplay, score, maxScore }) => {
+  if (!open) return null;
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-70">
+      <div className="bg-zinc-900 rounded-xl shadow-2xl p-8 max-w-md w-full text-center relative border border-purple-500/30">
+        {/* Close Button */}
+        <button
+          onClick={onClose}
+          className="absolute top-3 right-3 text-white bg-black/30 hover:bg-black/60 rounded-full p-1 shadow transition-colors text-lg"
+          aria-label="Close completion"
+        >
+          ×
+        </button>
+        <div className="text-4xl mb-3">🎉</div>
+        <h2 className="text-2xl font-bold text-white mb-3">Quest Complete!</h2>
+        {isReplay ? (
+          <p className="text-gray-300 mb-4 text-sm">You've successfully mastered this level!</p>
+        ) : (
+          <>
+            <p className="text-gray-300 mb-4 text-sm">You've successfully completed the level!</p>
+            <p className="text-lg mb-2">Score: <span className="font-bold">{score}</span> / {maxScore}</p>
+          </>
+        )}
+        <div className="space-y-3 mt-4">
+          <button
+            onClick={onClose}
+            className="w-full bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg transition-colors text-base font-semibold"
+          >
+            Return to Academy
+          </button>
+          <button
+            onClick={onNext}
+            className="w-full bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors text-base font-semibold"
+          >
+            Next Level
+          </button>
+          <button
+            onClick={onReplay}
+            className="w-full bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg transition-colors text-base font-semibold"
+          >
+            Replay
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 const GameLevel: React.FC = () => {
   const { levelId } = useParams<{ levelId: string }>();
   const navigate = useNavigate();
@@ -20,19 +77,21 @@ const GameLevel: React.FC = () => {
   const [showTutorial, setShowTutorial] = useState(true);
   const [currentPhase, setCurrentPhase] = useState<'intro' | 'tutorial' | 'gameplay' | 'boss' | 'complete'>('intro');
   const [gameSession, setGameSession] = useState(() => localStorageService.getGameState(parseInt(levelId || '1')));
+  const [showCompletionModal, setShowCompletionModal] = useState(false);
+  const [lastScore, setLastScore] = useState(0);
 
   const levelIdNum = parseInt(levelId || '1');
   const currentLevel = state.levels.find(l => l.id === levelIdNum);
 
   const levelData = {
     1: {
-      title: "Recursion & Time Complexity",
-      subtitle: "Escape Room with Call Stack Traps",
-      description: "Master the art of recursive magic and understand time complexity as you navigate through call stack traps.",
-      algorithm: "Recursion",
+      title: "Recursive Factorial",
+      subtitle: "Factorial Chamber",
+      description: "Solve the factorial problem using recursion to escape the chamber.",
+      algorithm: "Recursion (Factorial)",
       timeComplexity: "O(n)",
       spaceComplexity: "O(n)",
-      tutorial: "Click on doors to make recursive function calls. Watch the call stack grow and understand how recursion works.",
+      tutorial: "Click on numbers to make recursive function calls. Watch the call stack grow and understand how recursion works for factorial.",
       objective: "Complete the recursive sequence to unlock the exit door."
     },
     2: {
@@ -54,18 +113,16 @@ const GameLevel: React.FC = () => {
       navigate('/');
       return;
     }
-    // Always reset game state (including currentPhase) when navigating to a new level, even if completed
     setIsGameActive(false);
     setShowTutorial(true);
     setCurrentPhase('intro');
+    setShowCompletionModal(false);
     dispatch({ type: 'SET_CURRENT_LEVEL', payload: levelIdNum });
   }, [levelIdNum, currentLevel, navigate, dispatch]);
 
   useEffect(() => {
-    console.log('Current Level:', currentLevel);
     if (state.levels) {
       const nextLevel = state.levels.find(l => l.id === levelIdNum + 1);
-      console.log('Next Level:', nextLevel);
     }
   }, [currentLevel, state.levels, levelIdNum]);
 
@@ -98,6 +155,8 @@ const GameLevel: React.FC = () => {
     setIsGameActive(false);
     setCurrentPhase('complete');
     updateGameSession(score);
+    setLastScore(score);
+    setShowCompletionModal(true);
     const isReplay = currentLevel?.isCompleted || false;
     if (!isReplay) {
       dispatch({ 
@@ -126,12 +185,24 @@ const GameLevel: React.FC = () => {
     setIsGameActive(false);
     setShowTutorial(true);
     setCurrentPhase('intro');
+    setShowCompletionModal(false);
     localStorageService.resetGameState(levelIdNum);
     setGameSession(localStorageService.getGameState(levelIdNum));
   };
 
-  // Only show completion overlay if the player just finished the level in this session
-  const shouldShowCompletion = currentPhase === 'complete' && isGameActive === false;
+  const handleCloseModal = () => {
+    setShowCompletionModal(false);
+    navigate('/');
+  };
+
+  const handleNextLevel = () => {
+    setShowCompletionModal(false);
+    if (levelIdNum < state.levels.length) {
+      navigate(`/level/${levelIdNum + 1}`);
+    } else {
+      navigate('/dashboard');
+    }
+  };
 
   if (!currentLevel) {
     return (
@@ -269,59 +340,16 @@ const GameLevel: React.FC = () => {
       {isGameActive && (
         <GameUI level={currentLevel} isGameActive={isGameActive} onReplay={handleReplay} sessionScore={gameSession.currentScore} isReplay={currentLevel?.isCompleted} />
       )}
-      {/* Completion Overlay */}
-      {shouldShowCompletion && (
-        <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-center justify-center">
-          <div className="bg-white/10 backdrop-blur-sm rounded-xl p-6 max-w-sm mx-4 border border-purple-500/30 text-center relative">
-            {/* Close Button */}
-            <button
-              onClick={() => setCurrentPhase('intro')}
-              className="absolute top-2 right-2 text-white bg-black/30 hover:bg-black/60 rounded-full p-1 shadow transition-colors"
-              aria-label="Close completion"
-            >
-              ×
-            </button>
-            <div className="text-4xl mb-3">🎉</div>
-            <h2 className="text-xl font-bold text-white mb-3">Quest Complete!</h2>
-            {currentLevel?.isCompleted ? (
-              <p className="text-gray-300 mb-4 text-sm">You've successfully mastered the level!</p>
-            ) : (
-              <>
-                <p className="text-gray-300 mb-4 text-sm">You've successfully completed the level!</p>
-                <p className="text-lg mb-2">Score: <span className="font-bold">{gameSession.currentScore}</span> / {currentLevel?.maxScore}</p>
-              </>
-            )}
-            <div className="space-y-3">
-              <button
-                onClick={() => navigate('/')}
-                className="w-full bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg transition-colors text-sm"
-              >
-                Return to Academy
-              </button>
-              {levelIdNum < 5 && (
-                <button
-                  onClick={() => navigate(`/level/${levelIdNum + 1}`)}
-                  className="w-full bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors text-sm"
-                >
-                  Next Quest
-                </button>
-              )}
-              <button
-                onClick={() => {
-                  setIsGameActive(false);
-                  setShowTutorial(true);
-                  setCurrentPhase('intro');
-                  localStorageService.resetGameState(levelIdNum);
-                  setGameSession(localStorageService.getGameState(levelIdNum));
-                }}
-                className="w-full bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg transition-colors text-sm"
-              >
-                Replay
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      {/* Level Complete Modal */}
+      <LevelCompleteModal
+        open={showCompletionModal}
+        onClose={handleCloseModal}
+        onNext={handleNextLevel}
+        onReplay={handleReplay}
+        isReplay={currentLevel?.isCompleted}
+        score={lastScore}
+        maxScore={currentLevel?.maxScore || 100}
+      />
     </div>
   );
 };
