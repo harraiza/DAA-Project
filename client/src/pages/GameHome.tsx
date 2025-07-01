@@ -15,7 +15,7 @@ const GameHome: React.FC = () => {
   const gameLevels = [
     {
       id: 1,
-      title: "Recursion Escape",
+      title: "Recursive Factorial",
       subtitle: "Escape Room with Call Stack Traps",
       description: "Master the art of recursive magic and understand time complexity as you navigate through call stack traps.",
       difficulty: "Beginner",

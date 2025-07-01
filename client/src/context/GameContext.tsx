@@ -36,7 +36,7 @@ export interface GameAction {
 const allLevels: GameLevel[] = [
   {
     id: 1,
-    title: "Recursion Escape",
+    title: "Recursive Factorial",
     description: "Use recursive functions to unlock doors and escape the maze",
     algorithm: "Recursion",
     difficulty: "beginner",

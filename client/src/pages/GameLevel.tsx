@@ -226,13 +226,13 @@ const GameLevel: React.FC = () => {
       <div className="w-full max-w-4xl flex justify-between items-center mt-4 mb-2 z-30">
         <button
           onClick={() => navigate('/')}
-          className="flex items-center space-x-2 bg-black/50 hover:bg-black/70 text-white px-4 py-2 rounded-lg shadow-md transition-colors"
+          className="flex items-center space-x-2 bg-black/50 hover:bg-black/70 text-white px-4 py-2 rounded-lg shadow-md transition-colors mr-50"
         >
           <ArrowLeftIcon className="h-5 w-5" />
           <span>Back to Academy</span>
         </button>
         
-        <span className="text-white font-bold text-lg">Level {currentLevel.id}: {currentLevel.title}</span>
+        <span className="text-white font-bold text-lg ml-50">Level {currentLevel.id}: {currentLevel.title}</span>
         
         {!showTutorial && (
           <button
@@ -284,7 +284,7 @@ const GameLevel: React.FC = () => {
         {/* Tutorial Overlay */}
         {showTutorial && (
           <div className="absolute inset-0 z-40 bg-black/70 backdrop-blur-sm flex items-center justify-center">
-            <div className="bg-gradient-to-br from-yellow-500/90 to-yellow-700/90 shadow-2xl rounded-xl p-6 max-w-md mx-4 border border-purple-500/30 relative">
+            <div className="bg-gradient-to-br from-yellow-500/90 to-yellow-700/90 shadow-2xl rounded-xl p-6 max-w-md mx-4 border border-purple-500/30 relative mt-60">
               <button
                 onClick={() => setShowTutorial(false)}
                 className="absolute top-2 right-2 text-white bg-black/30 hover:bg-black/60 rounded-full p-1 shadow"
@@ -319,8 +319,8 @@ const GameLevel: React.FC = () => {
                 <div className="bg-black/20 rounded-lg p-3 mt-2">
                   <h3 className="text-base font-semibold text-white mb-1">Controls</h3>
                   <ul className="text-gray-100 text-sm list-disc list-inside">
-                    <li>Move: <span className="font-mono">←/→</span> or <span className="font-mono">A/D</span></li>
-                    <li>Jump: <span className="font-mono">↑</span> or <span className="font-mono">W</span> or <span className="font-mono">Space</span></li>
+                    <li>Move: <span className="font-mono">←/→</span></li>
+                    <li>Jump: <span className="font-mono">↑</span></li>
                   </ul>
                 </div>
               </div>
