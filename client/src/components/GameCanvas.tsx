@@ -1,7 +1,7 @@
 import React, { useEffect, useRef } from 'react';
 import Phaser from 'phaser';
 import { GameLevel } from '../context/GameContext';
-import { FactorialScene } from '../game/scenes/RecursionScene';
+import { FactorialScene } from '../game/scenes/FactorialScene';
 import { FibonacciScene } from '../game/scenes/FibonacciScene';
 
 interface GameCanvasProps {
