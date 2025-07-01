@@ -1,46 +1,49 @@
-# Algorithm Quest: DAA Educational Game
+# Algorithm Quest - Educational Game
 
-🎮 **A Game-Based Curriculum for Learning Design and Analysis of Algorithms**
+A comprehensive educational game for learning Design and Analysis of Algorithms (DAA) through interactive gameplay, visualizations, and hands-on practice.
 
-## 🎯 Project Overview
+## 🎮 Game Overview
 
-Algorithm Quest transforms the traditional DAA curriculum into an immersive, interactive gaming experience. Players become algorithmic mages who restore order to computational kingdoms by solving problems using various algorithms.
+Algorithm Quest transforms the learning of algorithms into an engaging adventure where players restore order to computational kingdoms by solving algorithmic problems. The game covers the complete DAA curriculum through 11 progressive levels, each focusing on specific algorithm concepts.
 
-## 🗺️ Game Features
+## ✨ Features
 
-### Core Learning Components
-- **Visual Algorithm Simulation**: Step-by-step execution with interactive animations
-- **Progressive Difficulty**: AI-driven adaptive learning paths
-- **Virtual Tutor**: AI-guided hints and complexity analysis
-- **Code Integration**: Optional coding challenges with real-time feedback
-- **Progress Analytics**: Comprehensive tracking for learners and instructors
+### 🎯 Core Learning Features
+- **11 Progressive Levels**: From recursion to NP-complete concepts
+- **Interactive Visualizations**: Real-time algorithm execution visualization
+- **Adaptive Difficulty**: Adjusts based on player performance
+- **AI Tutor Hints**: Contextual help and guidance
+- **Code Integration**: Write and test actual algorithms
+- **Progress Analytics**: Detailed learning progress tracking
 
-### Game Levels & Curriculum Mapping
+### 🎮 Gameplay Elements
+- **Story-Driven Learning**: Computational kingdoms theme
+- **Mini-Games**: Interactive challenges for each concept
+- **Boss Challenges**: Advanced problem-solving scenarios
+- **Achievement System**: Gamified learning milestones
+- **Local Progress Storage**: All progress saved locally
 
-| Level | Algorithm Topic | Game Activity |
-|-------|----------------|---------------|
-| 1 | Recursion & Time Complexity | Escape room puzzles with recursive door unlocking |
-| 2 | Sorting Algorithms | Sorting tournament with different strategies |
-| 3 | Searching Algorithms | Maze navigation with binary vs linear search |
-| 4 | Divide and Conquer | Magic barrier breaking through subproblem division |
-| 5 | Greedy Algorithms | Resource allocation optimization |
-| 6 | Dynamic Programming | Grid-based dungeon pathfinding |
-| 7 | Backtracking | Constraint-based puzzle solving |
-| 8 | Graph Algorithms (DFS/BFS) | Rescue missions across graph maps |
-| 9 | Shortest Paths | Cost-effective route navigation |
-| 10 | Minimum Spanning Tree | Network building between kingdoms |
-| 11 | NP-Complete Concepts | "Unsolvable" puzzles with approximation strategies |
+### 📊 Educational Content
+- **Time/Space Complexity**: Visual complexity analysis
+- **Algorithm Construction**: Step-by-step algorithm building
+- **Problem-Solving**: Real-world algorithmic challenges
+- **Competitive Elements**: Leaderboards and challenges
 
 ## 🛠️ Technology Stack
 
-- **Frontend**: React.js with TypeScript
-- **Game Engine**: Phaser.js for 2D game mechanics
-- **Visualization**: D3.js for algorithm animations
-- **Data Storage**: localStorage for progress tracking
-- **Code Editor**: Monaco Editor integration
-- **Deployment**: Vercel/Netlify for frontend
+### Frontend
+- **React 18** with TypeScript
+- **Phaser.js** for game engine
+- **D3.js** for data visualizations
+- **Tailwind CSS** for styling
+- **Heroicons** for icons
+- **Framer Motion** for animations
 
-## 🚀 Getting Started
+### Data Storage
+- **localStorage** for client-side data persistence
+- **No backend required** - fully client-side application
+
+## 🚀 Quick Start
 
 ### Prerequisites
 - Node.js (v16 or higher)
@@ -56,82 +59,193 @@ Algorithm Quest transforms the traditional DAA curriculum into an immersive, int
 
 2. **Install dependencies**
    ```bash
+   cd client
    npm install
    ```
 
-3. **Start development server**
+3. **Start the development server**
    ```bash
    npm start
    ```
 
-## 📁 Project Structure
+4. **Open your browser**
+   Navigate to `http://localhost:3000`
 
-```
-DAA-Project/
-├── client/                 # React frontend
-│   ├── src/
-│   │   ├── components/     # React components
-│   │   ├── game/          # Phaser.js game logic
-│   │   ├── algorithms/    # Algorithm implementations
-│   │   ├── visualizations/ # D3.js visualizations
-│   │   ├── context/       # React context for state management
-│   │   ├── services/      # localStorage service
-│   │   └── utils/         # Utility functions
-├── docs/                  # Documentation
-└── scripts/               # Development scripts
+### Alternative: Use the start script
+```bash
+chmod +x start-dev.sh
+./start-dev.sh
 ```
 
-## 🎮 Game Development Roadmap
+## 📚 Learning Path
 
-### Phase 1: Core Infrastructure (Weeks 1-2)
-- [x] Project setup and architecture
-- [x] Basic game engine integration
-- [x] Progress tracking with localStorage
-- [x] User state management
+### Level 1: Recursion Escape
+- **Concept**: Recursion fundamentals
+- **Gameplay**: Navigate through recursive function calls
+- **Learning**: Call stack visualization, recursive thinking
 
-### Phase 2: Algorithm Modules (Weeks 3-6)
-- [ ] Recursion and Time Complexity module
-- [ ] Sorting algorithms tournament
-- [ ] Searching algorithms maze
-- [ ] Divide and Conquer challenges
+### Level 2: Recursive Fibonacci
+- **Concept**: Fibonacci sequence with recursion
+- **Gameplay**: Build Fibonacci tree structure
+- **Learning**: Recursive tree traversal, exponential complexity
 
-### Phase 3: Advanced Features (Weeks 7-10)
-- [ ] Dynamic Programming grid system
-- [ ] Graph algorithm visualizations
-- [ ] Code editor integration
-- [ ] AI tutor implementation
+### Level 3: Sorting Algorithms
+- **Concept**: Various sorting techniques
+- **Gameplay**: Organize chaotic elements
+- **Learning**: Bubble sort, merge sort, quick sort
 
-### Phase 4: Polish & Testing (Weeks 11-12)
-- [ ] UI/UX refinement
-- [ ] Performance optimization
-- [ ] User testing and feedback
-- [ ] Deployment preparation
+### Level 4: Search Algorithms
+- **Concept**: Efficient search techniques
+- **Gameplay**: Find hidden treasures
+- **Learning**: Linear search, binary search
 
-## 📊 Research & Evaluation
+### Level 5: Divide and Conquer
+- **Concept**: Problem decomposition
+- **Gameplay**: Break complex problems into parts
+- **Learning**: Recursive problem-solving
 
-This project includes a comprehensive evaluation plan comparing traditional DAA learning with game-based approaches:
+### Level 6: Greedy Algorithms
+- **Concept**: Optimal local choices
+- **Gameplay**: Make best decisions at each step
+- **Learning**: Greedy strategy, optimization
 
-- **Engagement Metrics**: Time-on-task, completion rates
-- **Learning Outcomes**: Pre/post-test concept retention
-- **Confidence Assessment**: Self-reported algorithm application confidence
-- **Problem-solving Skills**: Applied algorithm design capabilities
+### Level 7: Dynamic Programming
+- **Concept**: Overlapping subproblems
+- **Gameplay**: Build solutions from smaller problems
+- **Learning**: Memoization, optimal substructure
+
+### Level 8: Backtracking
+- **Concept**: Systematic exploration
+- **Gameplay**: Try different solution paths
+- **Learning**: Constraint satisfaction, exhaustive search
+
+### Level 9: Graph Algorithms
+- **Concept**: Graph traversal
+- **Gameplay**: Navigate complex networks
+- **Learning**: DFS, BFS, graph representation
+
+### Level 10: Shortest Path
+- **Concept**: Pathfinding algorithms
+- **Gameplay**: Find optimal routes
+- **Learning**: Dijkstra's algorithm, path optimization
+
+### Level 11: Minimum Spanning Tree
+- **Concept**: Tree optimization
+- **Gameplay**: Connect nodes with minimum cost
+- **Learning**: Kruskal's, Prim's algorithms
+
+## 🏗️ Project Structure
+
+```
+client/
+├── public/                 # Static assets
+├── src/
+│   ├── components/         # Reusable UI components
+│   │   ├── GameCanvas.tsx  # Phaser.js game container
+│   │   ├── GameUI.tsx      # Game interface elements
+│   │   └── GameNavbar.tsx  # Navigation component
+│   ├── context/            # React context for state management
+│   │   └── GameContext.tsx # Main game state
+│   ├── game/               # Game logic and scenes
+│   │   └── scenes/         # Phaser.js game scenes
+│   ├── pages/              # Main application pages
+│   │   ├── GameHome.tsx    # Home page
+│   │   ├── GameLevel.tsx   # Level gameplay
+│   │   └── GameDashboard.tsx # Progress dashboard
+│   ├── services/           # Data services
+│   │   └── localStorage.ts # Local storage management
+│   ├── App.tsx             # Main app component
+│   └── index.tsx           # App entry point
+├── package.json            # Dependencies and scripts
+└── tailwind.config.js      # Tailwind configuration
+```
+
+## 🎯 Key Features Implementation
+
+### Visual Algorithm Simulation
+- Real-time execution visualization
+- Step-by-step algorithm breakdown
+- Interactive call stack representation
+- Complexity analysis display
+
+### Adaptive Learning System
+- Performance-based difficulty adjustment
+- Personalized learning paths
+- Progress tracking and analytics
+- Achievement system
+
+### Code Integration
+- Monaco Editor integration for code input
+- Syntax highlighting and error detection
+- Real-time code execution
+- Algorithm testing environment
+
+## 📊 Progress Tracking
+
+The game tracks comprehensive learning metrics:
+- **Level Completion**: Progress through all 11 levels
+- **Performance Metrics**: Scores, time spent, attempts
+- **Achievement System**: Unlockable milestones
+- **Learning Analytics**: Detailed progress reports
+- **Streak Tracking**: Daily learning consistency
+
+## 🎨 Customization
+
+### Themes and Preferences
+- Dark/Light theme support
+- Sound settings
+- Tutorial preferences
+- Difficulty settings
+
+### Local Data Management
+- Export/import progress data
+- Reset progress functionality
+- Achievement tracking
+- Statistics storage
+
+## 🚀 Deployment
+
+### Build for Production
+```bash
+cd client
+npm run build
+```
+
+### Deploy to Static Hosting
+The built application can be deployed to any static hosting service:
+- Vercel
+- Netlify
+- GitHub Pages
+- AWS S3
 
 ## 🤝 Contributing
 
-We welcome contributions! Please see our [Contributing Guidelines](CONTRIBUTING.md) for details.
+1. Fork the repository
+2. Create a feature branch
+3. Make your changes
+4. Test thoroughly
+5. Submit a pull request
 
 ## 📄 License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+This project is licensed under the MIT License - see the LICENSE file for details.
 
 ## 🎓 Academic Impact
 
-This project aims to:
-- Improve motivation and reduce algorithm anxiety
-- Enhance visual learning for underrepresented CS students
-- Provide empirical data on game-based learning effectiveness
-- Create a scalable model for algorithm education
+This game-based learning approach aims to:
+- **Increase Engagement**: Make algorithm learning fun and interactive
+- **Improve Retention**: Visual and hands-on learning methods
+- **Build Confidence**: Progressive difficulty and achievement system
+- **Enhance Problem-Solving**: Real-world algorithmic challenges
+
+## 🔮 Future Enhancements
+
+- **Multiplayer Mode**: Collaborative learning experiences
+- **Advanced Visualizations**: 3D algorithm representations
+- **Mobile Support**: Responsive design for mobile devices
+- **Offline Mode**: Complete offline functionality
+- **Custom Levels**: User-generated content support
 
 ---
 
-**Ready to embark on your algorithmic adventure?** 🚀
+**Algorithm Quest** - Making algorithm education engaging, interactive, and effective through gamification and visualization.

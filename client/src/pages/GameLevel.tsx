@@ -151,7 +151,7 @@ const GameLevel: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-purple-900 to-gray-900 pt-20 flex flex-col items-center">
-      {/* Top bar: Back to Academy, Show Tutorial */}
+      {/* Top bar: Level Name, Back to Academy, Show Tutorial */}
       <div className="w-full max-w-4xl flex justify-between items-center mt-4 mb-2 z-30">
         <button
           onClick={() => navigate('/')}
@@ -160,6 +160,9 @@ const GameLevel: React.FC = () => {
           <ArrowLeftIcon className="h-5 w-5" />
           <span>Back to Academy</span>
         </button>
+        
+        <span className="text-white font-bold text-lg">Level {currentLevel.id}: {currentLevel.title}</span>
+        
         {!showTutorial && (
           <button
             onClick={() => setShowTutorial(true)}
@@ -169,6 +172,7 @@ const GameLevel: React.FC = () => {
           </button>
         )}
       </div>
+
       {/* Game Canvas and Overlayed Start/Reset Button */}
       <div className="relative w-full max-w-4xl flex flex-col items-center z-10">
         {/* Game Canvas: Only mount when game is active */}
@@ -180,16 +184,20 @@ const GameLevel: React.FC = () => {
             />
           </div>
         )}
-        {/* Overlay Start Button when not active */}
+        {/* Overlay Start Button when not active - positioned lower */}
         {!isGameActive && !showTutorial && (
-          <div className="absolute inset-0 flex items-center justify-center z-30">
-            <button
-              onClick={startGame}
-              className="flex flex-col items-center justify-center bg-gradient-to-r from-green-500 to-green-700 hover:from-green-600 hover:to-green-800 text-white px-10 py-6 rounded-2xl shadow-2xl text-3xl font-bold border-4 border-white/30 focus:outline-none focus:ring-4 focus:ring-green-400"
-            >
-              <PlayIcon className="h-10 w-10 mb-2" />
-              Start
-            </button>
+          <div className="w-full aspect-[16/9] bg-black rounded-xl overflow-hidden shadow-2xl flex items-center justify-center relative z-10">
+            <div className="flex flex-col items-center justify-center h-full">
+              <div className="flex-grow"></div>
+              <button
+                onClick={startGame}
+                className="flex flex-col items-center justify-center bg-gradient-to-r from-green-500 to-green-700 hover:from-green-600 hover:to-green-800 text-white px-10 py-6 rounded-2xl shadow-2xl text-3xl font-bold border-4 border-white/30 focus:outline-none focus:ring-4 focus:ring-green-400 mb-20"
+              >
+                <PlayIcon className="h-10 w-10 mb-2" />
+                Start
+              </button>
+              <div className="flex-grow"></div>
+            </div>
           </div>
         )}
         {/* Reset button (bottom right) when game is active */}

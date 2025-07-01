@@ -1,35 +1,35 @@
 #!/bin/bash
 
-echo "🧹 Cleaning up existing processes..."
+echo "🚀 Starting Algorithm Quest Development Server"
+echo "=============================================="
 
-# Kill any existing processes
-pkill -f "concurrently\|nodemon\|react-scripts" 2>/dev/null
-lsof -ti:3000 | xargs kill -9 2>/dev/null
-
-echo "🚀 Starting development server..."
-
-# Start the frontend
-cd client
-npm start &
-CLIENT_PID=$!
-cd ..
-
-echo "⏳ Waiting for React app to start..."
-sleep 10
-
-# Test frontend
-echo "🔍 Testing frontend..."
-if curl -s http://localhost:3000 > /dev/null; then
-    echo "✅ React app is running on port 3000"
-else
-    echo "⚠️  React app may still be starting..."
+# Check if Node.js is installed
+if ! command -v node &> /dev/null; then
+    echo "❌ Node.js is not installed. Please install Node.js first."
+    exit 1
 fi
 
-echo ""
-echo "🎉 Development environment is starting!"
-echo "📱 Frontend: http://localhost:3000"
-echo ""
-echo "Press Ctrl+C to stop the server"
+# Check if npm is installed
+if ! command -v npm &> /dev/null; then
+    echo "❌ npm is not installed. Please install npm first."
+    exit 1
+fi
 
-# Wait for user to stop
-wait 
+echo "✅ Node.js and npm are installed"
+
+# Navigate to client directory
+cd client
+
+# Check if node_modules exists
+if [ ! -d "node_modules" ]; then
+    echo "📦 Installing dependencies..."
+    npm install
+fi
+
+echo "🎮 Starting React development server..."
+echo "🌐 The app will be available at: http://localhost:3000"
+echo "📱 Press Ctrl+C to stop the server"
+echo ""
+
+# Start the development server
+npm start 
