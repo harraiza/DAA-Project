@@ -1,6 +1,6 @@
 import Phaser from 'phaser';
 
-export class RecursionScene extends Phaser.Scene {
+export class FactorialScene extends Phaser.Scene {
   private player!: Phaser.Physics.Arcade.Sprite;
   private platforms!: Phaser.Physics.Arcade.StaticGroup;
   private cursors!: Phaser.Types.Input.Keyboard.CursorKeys;
@@ -16,8 +16,12 @@ export class RecursionScene extends Phaser.Scene {
   private callDepthText!: Phaser.GameObjects.Text;
   private gameCompleted = false;
 
+  private fallTimer: number = 0;
+  private readonly FALL_RESET_Y = 1000;
+  private readonly FALL_RESET_TIME = 2000; // ms
+
   constructor() {
-    super('RecursionScene');
+    super('FactorialScene');
   }
 
   preload() {
@@ -31,6 +35,9 @@ export class RecursionScene extends Phaser.Scene {
     this.currentDepth = 0;
     this.returnValues = [];
     this.callStack = [];
+
+    // Set world bounds larger than camera, and allow movement left of x=0
+    this.physics.world.setBounds(-200, 0, 1400, 1200);
 
     this.lights.enable().setAmbientColor(0x333333);
     this.cameras.main.setBackgroundColor('#0f0f2d');
@@ -50,8 +57,8 @@ export class RecursionScene extends Phaser.Scene {
     this.callDepthText = this.add.text(20, 20, 'Depth: 5', { fontSize: '20px', color: '#fff' });
 
     // Camera follows player and fits the scene
-    this.cameras.main.startFollow(this.player, true, 0.1, 0.1);
-    this.cameras.main.setBounds(0, 0, 800, this.baseY + this.levels * 120 + 100);
+    this.cameras.main.startFollow(this.player, true, 1, 1);
+    this.cameras.main.setBounds(0, 0, 800, this.baseY + this.levels * 120 + 200);
   }
 
   private createPlatforms() {
@@ -129,6 +136,9 @@ export class RecursionScene extends Phaser.Scene {
       repeat: -1,
       ease: 'Sine.easeInOut'
     });
+    // Disable collision with world bounds to remove bottom phantom wall
+    const body = this.player.body as Phaser.Physics.Arcade.Body;
+    body.setCollideWorldBounds(false);
   }
 
   private createArtifact() {
@@ -237,7 +247,7 @@ export class RecursionScene extends Phaser.Scene {
     });
   }
 
-  update() {
+  update(time: number, delta: number) {
     if (!this.player || !this.cursors) {
         if(this.player) this.player.setVelocityX(0);
         return;
@@ -277,6 +287,19 @@ export class RecursionScene extends Phaser.Scene {
 
         this.callDepthText.setText(`Depth: ${currentFactorialNum}`);
       }
+    }
+
+    // Out-of-bounds fall reset logic
+    if (this.player.y > this.FALL_RESET_Y) {
+      this.fallTimer += delta;
+      if (this.fallTimer > this.FALL_RESET_TIME) {
+        // Reset player to starting position
+        this.player.setPosition(300, this.baseY - 50);
+        this.player.setVelocity(0, 0);
+        this.fallTimer = 0;
+      }
+    } else {
+      this.fallTimer = 0;
     }
   }
 }

@@ -1,7 +1,7 @@
 import React, { useEffect, useRef } from 'react';
 import Phaser from 'phaser';
 import { GameLevel } from '../context/GameContext';
-import { RecursionScene } from '../game/scenes/RecursionScene';
+import { FactorialScene } from '../game/scenes/RecursionScene';
 import { FibonacciScene } from '../game/scenes/FibonacciScene';
 
 interface GameCanvasProps {
@@ -12,22 +12,22 @@ interface GameCanvasProps {
 const getSceneForLevel = (levelId: number) => {
   switch (levelId) {
     case 1:
-      return RecursionScene;
+      return FactorialScene;
     case 2:
       return FibonacciScene;
     default:
-      return RecursionScene;
+      return FactorialScene;
   }
 };
 
 const getSceneKeyForLevel = (levelId: number) => {
   switch (levelId) {
     case 1:
-      return 'RecursionScene';
+      return 'FactorialScene';
     case 2:
       return 'FibonacciScene';
     default:
-      return 'RecursionScene';
+      return 'FactorialScene';
   }
 };
 
