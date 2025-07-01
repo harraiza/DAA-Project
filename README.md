@@ -44,6 +44,9 @@ Algorithm Quest transforms the learning of algorithms into an engaging adventure
 - **No backend required** - fully client-side application
 
 ## 🚀 Quick Start
+- Open via: https://algorithm-mage.vercel.app/
+
+  OR
 
 ### Prerequisites
 - Node.js (v16 or higher)
@@ -88,6 +91,8 @@ chmod +x start-dev.sh
 - **Concept**: Fibonacci sequence with recursion
 - **Gameplay**: Build Fibonacci tree structure
 - **Learning**: Recursive tree traversal, exponential complexity
+
+### TO BE IMPLEMENTED:
 
 ### Level 3: Sorting Algorithms
 - **Concept**: Various sorting techniques
@@ -184,18 +189,9 @@ client/
 
 The game tracks comprehensive learning metrics:
 - **Level Completion**: Progress through all 11 levels
-- **Performance Metrics**: Scores, time spent, attempts
+- **Performance Metrics**: Scores
 - **Achievement System**: Unlockable milestones
-- **Learning Analytics**: Detailed progress reports
-- **Streak Tracking**: Daily learning consistency
-
-## 🎨 Customization
-
-### Themes and Preferences
-- Dark/Light theme support
-- Sound settings
-- Tutorial preferences
-- Difficulty settings
+  
 
 ### Local Data Management
 - Export/import progress data
@@ -203,34 +199,11 @@ The game tracks comprehensive learning metrics:
 - Achievement tracking
 - Statistics storage
 
-## 🚀 Deployment
-
-### Build for Production
-```bash
-cd client
-npm run build
-```
-
-### Deploy to Static Hosting
-The built application can be deployed to any static hosting service:
-- Vercel
-- Netlify
-- GitHub Pages
-- AWS S3
-
-## 🤝 Contributing
-
-1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Test thoroughly
-5. Submit a pull request
-
-## 📄 License
+### 📄 License
 
 This project is licensed under the MIT License - see the LICENSE file for details.
 
-## 🎓 Academic Impact
+### 🎓 Academic Impact
 
 This game-based learning approach aims to:
 - **Increase Engagement**: Make algorithm learning fun and interactive
@@ -238,7 +211,7 @@ This game-based learning approach aims to:
 - **Build Confidence**: Progressive difficulty and achievement system
 - **Enhance Problem-Solving**: Real-world algorithmic challenges
 
-## 🔮 Future Enhancements
+### 🔮 Future Enhancements
 
 - **Multiplayer Mode**: Collaborative learning experiences
 - **Advanced Visualizations**: 3D algorithm representations
