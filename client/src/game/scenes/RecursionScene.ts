@@ -14,6 +14,7 @@ export class RecursionScene extends Phaser.Scene {
   private currentDepth = 0;
   private collected = false;
   private callDepthText!: Phaser.GameObjects.Text;
+  private gameCompleted = false;
 
   constructor() {
     super('RecursionScene');
@@ -24,6 +25,13 @@ export class RecursionScene extends Phaser.Scene {
   }
 
   create() {
+    // Reset game state
+    this.collected = false;
+    this.gameCompleted = false;
+    this.currentDepth = 0;
+    this.returnValues = [];
+    this.callStack = [];
+
     this.lights.enable().setAmbientColor(0x333333);
     this.cameras.main.setBackgroundColor('#0f0f2d');
 
@@ -188,6 +196,9 @@ export class RecursionScene extends Phaser.Scene {
         this.add.text(400, this.baseY - 20, `Recursion Complete! Final Value: ${finalResult}`, {
             fontSize: '24px', color: '#28a745', fontStyle: 'bold'
         }).setOrigin(0.5);
+        
+        this.gameCompleted = true;
+        
         // --- SCORE CALCULATION AND CALLBACK ---
         // Simple score: 100 if completed, can be made more complex
         const score = 100;
@@ -227,13 +238,14 @@ export class RecursionScene extends Phaser.Scene {
   }
 
   update() {
-    if (!this.player || !this.cursors || this.collected) {
+    if (!this.player || !this.cursors) {
         if(this.player) this.player.setVelocityX(0);
         return;
     };
 
     const body = this.player.body as Phaser.Physics.Arcade.Body;
     
+    // Allow movement even after completion
     if (this.cursors.left.isDown) {
       this.player.setVelocityX(-180);
     } else if (this.cursors.right.isDown) {
@@ -249,19 +261,22 @@ export class RecursionScene extends Phaser.Scene {
     if (this.player.x < 80) this.player.x = 80;
     if (this.player.x > 720) this.player.x = 720;
     
-    const newDepth = Math.floor((this.player.y - this.baseY + 60) / 120);
-    if (newDepth !== this.currentDepth && newDepth < this.levels && newDepth >= 0) {
-      this.currentDepth = newDepth;
-      
-      const currentFactorialNum = this.levels - this.currentDepth;
-      this.callStack[this.currentDepth].setText(`Calling factorial(${currentFactorialNum})...`);
-      this.callStack[this.currentDepth].setBackgroundColor('#d35400');
-      
-      if(this.currentDepth > 0) {
-        this.callStack[this.currentDepth - 1].setBackgroundColor('#1c1c3c');
-      }
+    // Only update depth and call stack if game is not completed
+    if (!this.gameCompleted) {
+      const newDepth = Math.floor((this.player.y - this.baseY + 60) / 120);
+      if (newDepth !== this.currentDepth && newDepth < this.levels && newDepth >= 0) {
+        this.currentDepth = newDepth;
+        
+        const currentFactorialNum = this.levels - this.currentDepth;
+        this.callStack[this.currentDepth].setText(`Calling factorial(${currentFactorialNum})...`);
+        this.callStack[this.currentDepth].setBackgroundColor('#d35400');
+        
+        if(this.currentDepth > 0) {
+          this.callStack[this.currentDepth - 1].setBackgroundColor('#1c1c3c');
+        }
 
-      this.callDepthText.setText(`Depth: ${currentFactorialNum}`);
+        this.callDepthText.setText(`Depth: ${currentFactorialNum}`);
+      }
     }
   }
 }
