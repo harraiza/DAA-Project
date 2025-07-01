@@ -41,7 +41,6 @@ const LevelCompleteModal: React.FC<{
         ) : (
           <>
             <p className="text-gray-300 mb-4 text-sm">You've successfully completed the level!</p>
-            <p className="text-lg mb-2">Score: <span className="font-bold">{score}</span> / {maxScore}</p>
           </>
         )}
         <div className="space-y-3 mt-4">
@@ -79,6 +78,7 @@ const GameLevel: React.FC = () => {
   const [gameSession, setGameSession] = useState(() => localStorageService.getGameState(parseInt(levelId || '1')));
   const [showCompletionModal, setShowCompletionModal] = useState(false);
   const [lastScore, setLastScore] = useState(0);
+  const [isReplayModal, setIsReplayModal] = useState(false);
 
   const levelIdNum = parseInt(levelId || '1');
   const currentLevel = state.levels.find(l => l.id === levelIdNum);
@@ -156,8 +156,8 @@ const GameLevel: React.FC = () => {
     setCurrentPhase('complete');
     updateGameSession(score);
     setLastScore(score);
-    setShowCompletionModal(true);
     const isReplay = currentLevel?.isCompleted || false;
+    setIsReplayModal(isReplay);
     if (!isReplay) {
       dispatch({ 
         type: 'COMPLETE_LEVEL', 
@@ -203,6 +203,12 @@ const GameLevel: React.FC = () => {
       navigate('/dashboard');
     }
   };
+
+  useEffect(() => {
+    if (currentLevel?.isCompleted && currentPhase === 'complete') {
+      setShowCompletionModal(true);
+    }
+  }, [currentLevel?.isCompleted, currentPhase]);
 
   if (!currentLevel) {
     return (
@@ -346,7 +352,7 @@ const GameLevel: React.FC = () => {
         onClose={handleCloseModal}
         onNext={handleNextLevel}
         onReplay={handleReplay}
-        isReplay={currentLevel?.isCompleted}
+        isReplay={isReplayModal}
         score={lastScore}
         maxScore={currentLevel?.maxScore || 100}
       />

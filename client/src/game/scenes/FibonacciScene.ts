@@ -107,22 +107,29 @@ export class FibonacciScene extends Phaser.Scene {
     // --- Texture Generation ---
     private createTextures() {
         this.createStarTexture();
-        this.createPlatformTexture();
+        this.createColorfulPlatformTextures();
     }
 
-    private createPlatformTexture() {
-        if (!this.textures.exists('platform-blue')) {
-            const g = this.add.graphics();
-            g.fillStyle(0x3a86ff, 1);
-            g.fillRect(0, 0, 180, 24);
-            g.lineStyle(4, 0xffffff, 0.3);
-            g.strokeRect(0, 0, 180, 24);
-            for (let s = 0; s < 5; s++) {
-                g.fillStyle(0xffffff, 0.5);
-                g.fillCircle(20 + s * 32, 8 + Math.random() * 8, 2 + Math.random() * 2);
+    private createColorfulPlatformTextures() {
+        // Color palette similar to FactorialScene
+        const platformColors = [0x3a86ff, 0x8338ec, 0xff006e, 0xfb5607, 0xffbe0b];
+        for (let i = 0; i < platformColors.length; i++) {
+            const key = `platform-colorful-${i}`;
+            if (!this.textures.exists(key)) {
+                const g = this.add.graphics();
+                const color = platformColors[i];
+                g.fillStyle(color, 1);
+                g.fillRect(0, 0, 180, 24);
+                g.lineStyle(4, 0xffffff, 0.3);
+                g.strokeRect(0, 0, 180, 24);
+                // Decorative sparkles/circles
+                for (let s = 0; s < 7; s++) {
+                    g.fillStyle(0xffffff, 0.5);
+                    g.fillCircle(20 + s * 22, 8 + Math.random() * 8, 2 + Math.random() * 2);
+                }
+                g.generateTexture(key, 180, 24);
+                g.destroy();
             }
-            g.generateTexture('platform-blue', 180, 24);
-            g.destroy();
         }
     }
 
@@ -474,15 +481,23 @@ export class FibonacciScene extends Phaser.Scene {
     }
 
     private createPlatformForNode(node: FibNode) {
+        // Assign a color index based on depth (from label)
+        let colorIdx = 0;
+        const match = node.label.match(/fib\((\d+)\)/);
+        if (match) {
+            const depth = parseInt(match[1], 10);
+            // Map depth to color index (deeper = different color)
+            colorIdx = (5 - depth) % 5;
+            if (colorIdx < 0) colorIdx += 5;
+        }
+        const platformKey = `platform-colorful-${colorIdx}`;
         // Create platform
-        const platform = this.physics.add.staticSprite(node.x, node.y, 'platform-blue');
+        const platform = this.physics.add.staticSprite(node.x, node.y, platformKey);
         platform.setDisplaySize(180, 24).refreshBody();
         node.platform = platform;
-        
         // Add label and store reference for later removal
         const labelText = this.add.text(node.x, node.y - 25, node.label, { fontSize: '16px', color: '#fff', fontStyle: 'bold' }).setOrigin(0.5);
         (node as any).labelText = labelText;
-
         // Add artifact (star) for leaf nodes, only if not already collected
         if (node.isLeaf && this.player && !node.visited && !node.artifact) {
             node.artifact = this.physics.add.staticSprite(node.x, node.y - 50, 'magic-star');
