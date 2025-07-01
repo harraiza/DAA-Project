@@ -12,7 +12,6 @@ interface FibNode {
     visited: boolean;
     resolved: boolean;
     platform?: Phaser.Physics.Arcade.Image;
-    thorns?: Phaser.GameObjects.Group;
     artifact?: Phaser.GameObjects.Sprite;
     value: number;
 }
@@ -22,12 +21,14 @@ export class FibonacciScene extends Phaser.Scene {
     private cursors!: Phaser.Types.Input.Keyboard.CursorKeys;
     private callStack: Phaser.GameObjects.Text[] = [];
     private callDepthText!: Phaser.GameObjects.Text;
-    private startPosition = { x: 400, y: 50 };
+    private startPosition = { x: 600, y: 30 };
     private fibTree: Map<string, FibNode> = new Map();
-    private walls!: Phaser.Physics.Arcade.StaticGroup;
     private collectedLeaves = 0;
     private totalLeaves = 0;
     private completed = false;
+    private fallTimer: number = 0;
+    private readonly FALL_RESET_Y = 700;
+    private readonly FALL_RESET_TIME = 2000; // ms
 
     constructor() {
         super('FibonacciScene');
@@ -42,18 +43,21 @@ export class FibonacciScene extends Phaser.Scene {
         this.lights.enable().setAmbientColor(0x333333);
         this.cameras.main.setBackgroundColor('#0f0f2d');
 
+        // Set world bounds larger than camera, and allow movement left of x=0
+        this.physics.world.setBounds(-200, 0, 1800, 1000);
+
         // Data setup
         this.initializeFibTree();
         this.createTextures();
-        this.createPlatformsAndObjects();
         this.createPlayer();
+        this.createPlatformsAndObjects();
         this.createCallStackUI();
 
         this.cursors = this.input.keyboard!.createCursorKeys();
 
         // Camera follow and bounds
         this.cameras.main.startFollow(this.player, true, 0.1, 0.1);
-        this.cameras.main.setBounds(0, 0, 800, 700);
+        this.cameras.main.setBounds(-200, 0, 1800, 1000);
 
         // Count total leaves
         this.totalLeaves = Array.from(this.fibTree.values()).filter(n => n.isLeaf).length;
@@ -65,21 +69,43 @@ export class FibonacciScene extends Phaser.Scene {
 
     // --- Data Initialization ---
     private initializeFibTree() {
-        // Hardcoded for fib(5) tree
-        this.fibTree.set('fib-5', { id: 'fib-5', label: 'fib(5)', x: 400, y: 100, isLeaf: false, isAccessible: true, parent: null, visited: false, resolved: false, value: -1 });
-        this.fibTree.set('fib-4', { id: 'fib-4', label: 'fib(4)', x: 250, y: 220, isLeaf: false, isAccessible: true, parent: 'fib-5', visited: false, resolved: false, value: -1 });
-        this.fibTree.set('fib-3-right', { id: 'fib-3-right', label: 'fib(3)', x: 550, y: 220, isLeaf: false, isAccessible: false, parent: 'fib-5', visited: false, resolved: false, value: -1 });
+        // Complete fib(5) tree structure
+        // Initially accessible: fib(5), fib(4), fib(3-left), fib(2-left), fib(1-leaf)
+        
+        // Level 0: Root
+        this.fibTree.set('fib-5', { id: 'fib-5', label: 'fib(5)', x: 600, y: 100, isLeaf: false, isAccessible: true, parent: null, visited: false, resolved: false, value: -1 });
+        
+        // Level 1: Children of fib(5)
+        this.fibTree.set('fib-4', { id: 'fib-4', label: 'fib(4)', x: 300, y: 220, isLeaf: false, isAccessible: true, parent: 'fib-5', visited: false, resolved: false, value: -1 });
+        this.fibTree.set('fib-3-right', { id: 'fib-3-right', label: 'fib(3)', x: 900, y: 220, isLeaf: false, isAccessible: false, parent: 'fib-5', visited: false, resolved: false, value: -1 });
+        
+        // Level 2: Children of fib(4)
         this.fibTree.set('fib-3-left', { id: 'fib-3-left', label: 'fib(3)', x: 150, y: 340, isLeaf: false, isAccessible: true, parent: 'fib-4', visited: false, resolved: false, value: -1 });
-        this.fibTree.set('fib-2-right', { id: 'fib-2-right', label: 'fib(2)', x: 350, y: 340, isLeaf: false, isAccessible: false, parent: 'fib-4', visited: false, resolved: false, value: -1 });
-        this.fibTree.set('fib-2-left', { id: 'fib-2-left', label: 'fib(2)', x: 50, y: 460, isLeaf: false, isAccessible: true, parent: 'fib-3-left', visited: false, resolved: false, value: -1 });
-        this.fibTree.set('fib-1-right', { id: 'fib-1-right', label: 'fib(1)', x: 250, y: 460, isLeaf: true, isAccessible: false, parent: 'fib-3-left', visited: false, resolved: false, value: 1 });
-        this.fibTree.set('fib-1-leaf', { id: 'fib-1-leaf', label: 'fib(1)', x: -50, y: 580, isLeaf: true, isAccessible: true, parent: 'fib-2-left', visited: false, resolved: false, value: 1 });
+        this.fibTree.set('fib-2-right', { id: 'fib-2-right', label: 'fib(2)', x: 450, y: 340, isLeaf: false, isAccessible: false, parent: 'fib-4', visited: false, resolved: false, value: -1 });
+        
+        // Level 2: Children of fib(3-right)
+        this.fibTree.set('fib-2-right-right', { id: 'fib-2-right-right', label: 'fib(2)', x: 750, y: 340, isLeaf: false, isAccessible: false, parent: 'fib-3-right', visited: false, resolved: false, value: -1 });
+        this.fibTree.set('fib-1-right-right', { id: 'fib-1-right-right', label: 'fib(1)', x: 1050, y: 340, isLeaf: true, isAccessible: false, parent: 'fib-3-right', visited: false, resolved: false, value: 1 });
+        
+        // Level 3: Children of fib(3-left)
+        this.fibTree.set('fib-2-left', { id: 'fib-2-left', label: 'fib(2)', x: 0, y: 460, isLeaf: false, isAccessible: true, parent: 'fib-3-left', visited: false, resolved: false, value: -1 });
+        this.fibTree.set('fib-1-right', { id: 'fib-1-right', label: 'fib(1)', x: 300, y: 460, isLeaf: true, isAccessible: false, parent: 'fib-3-left', visited: false, resolved: false, value: 1 });
+        
+        // Level 3: Children of fib(2-right)
+        this.fibTree.set('fib-1-right-2', { id: 'fib-1-right-2', label: 'fib(1)', x: 375, y: 460, isLeaf: true, isAccessible: false, parent: 'fib-2-right', visited: false, resolved: false, value: 1 });
+        this.fibTree.set('fib-0-right', { id: 'fib-0-right', label: 'fib(0)', x: 525, y: 460, isLeaf: true, isAccessible: false, parent: 'fib-2-right', visited: false, resolved: false, value: 0 });
+        
+        // Level 3: Children of fib(2-right-right)
+        this.fibTree.set('fib-1-right-right-2', { id: 'fib-1-right-right-2', label: 'fib(1)', x: 675, y: 460, isLeaf: true, isAccessible: false, parent: 'fib-2-right-right', visited: false, resolved: false, value: 1 });
+        this.fibTree.set('fib-0-right-right', { id: 'fib-0-right-right', label: 'fib(0)', x: 825, y: 460, isLeaf: true, isAccessible: false, parent: 'fib-2-right-right', visited: false, resolved: false, value: 0 });
+        
+        // Level 4: Children of fib(2-left)
+        this.fibTree.set('fib-1-leaf', { id: 'fib-1-leaf', label: 'fib(1)', x: -150, y: 580, isLeaf: true, isAccessible: true, parent: 'fib-2-left', visited: false, resolved: false, value: 1 });
         this.fibTree.set('fib-0-leaf', { id: 'fib-0-leaf', label: 'fib(0)', x: 150, y: 580, isLeaf: true, isAccessible: false, parent: 'fib-2-left', visited: false, resolved: false, value: 0 });
     }
 
     // --- Texture Generation ---
     private createTextures() {
-        this.createThornTexture();
         this.createStarTexture();
         this.createPlatformTexture();
     }
@@ -100,15 +126,6 @@ export class FibonacciScene extends Phaser.Scene {
         }
     }
 
-    private createThornTexture() {
-        if (this.textures.exists('thorn')) return;
-        const g = this.add.graphics();
-        g.fillStyle(0xffffff, 1);
-        g.fillTriangle(0, 15, 7.5, 0, 15, 15);
-        g.generateTexture('thorn', 15, 15);
-        g.destroy();
-    }
-
     private createStarTexture() {
         if (this.textures.exists('magic-star')) return;
         const g = this.add.graphics();
@@ -120,52 +137,75 @@ export class FibonacciScene extends Phaser.Scene {
 
     // --- Platform and Object Creation ---
     private createPlatformsAndObjects() {
-        this.walls = this.physics.add.staticGroup();
+        this.revealCurrentPathAndStar();
+    }
+
+    // Reveal only the current leftmost path (from root to next unvisited leaf) and show only one star
+    private revealCurrentPathAndStar() {
+        // Find the current path (root to next unvisited leaf)
+        const path = this.getCurrentRecursivePath();
+        const pathIds = new Set(path.map(node => node.id));
+
+        // Destroy platforms for all nodes not in the current path
         this.fibTree.forEach(node => {
-            // Platform
-            const platform = this.physics.add.image(node.x, node.y, 'platform-blue').setImmovable(true);
-            platform.setDisplaySize(180, 24).refreshBody();
-            node.platform = platform;
-            this.add.text(node.x, node.y - 25, node.label, { fontSize: '16px', color: '#fff', fontStyle: 'bold' }).setOrigin(0.5);
-
-            // Add invisible walls for leftmost/rightmost nodes
-            if (node.x < 100) {
-                this.walls.create(node.x - 90, node.y, undefined).setDisplaySize(10, 64).setVisible(false).refreshBody();
+            if (!pathIds.has(node.id) && node.platform) {
+                this.destroyNodeVisuals(node);
             }
-            if (node.x > 700) {
-                this.walls.create(node.x + 90, node.y, undefined).setDisplaySize(10, 64).setVisible(false).refreshBody();
-            }
-
-            // Artifacts (stars) for leaves
-            if (node.isLeaf) {
-                node.artifact = this.physics.add.sprite(node.x, node.y - 50, 'magic-star').setImmovable(true);
-                this.physics.add.overlap(this.player, node.artifact, () => this.collectArtifact(node.id), undefined, this);
-            }
-            this.updateNodeAccessibility(node.id);
         });
-        this.physics.add.collider(this.player, Array.from(this.fibTree.values()).map(node => node.platform!));
-        this.physics.add.collider(this.player, this.walls);
+
+        // Set all nodes in the path to accessible, create platforms if needed
+        path.forEach((node, idx) => {
+            node.isAccessible = true;
+            if (!node.visited) {
+                if (!node.platform) {
+                    this.createPlatformForNode(node);
+                    if (node.platform && this.player) {
+                        this.physics.add.collider(this.player, node.platform);
+                    }
+                }
+                // Only the last node in the path (the leaf) gets the visible artifact
+                if (idx === path.length - 1 && node.isLeaf) {
+                    if (!node.artifact && this.player) {
+                        node.artifact = this.physics.add.staticSprite(node.x, node.y - 50, 'magic-star');
+                        this.physics.add.overlap(this.player, node.artifact, () => this.collectArtifact(node.id), undefined, this);
+                    }
+                    if (node.artifact) node.artifact.setVisible(true);
+                } else if (node.artifact) {
+                    node.artifact.setVisible(false);
+                }
+            } else {
+                // If the node is visited, ensure its platform is destroyed
+                this.destroyNodeVisuals(node);
+            }
+        });
+    }
+
+    // Get the current recursive path from root to the next unvisited leaf
+    private getCurrentRecursivePath(): FibNode[] {
+        const path: FibNode[] = [];
+        let current = this.fibTree.get('fib-5');
+        while (current) {
+            path.push(current);
+            if (current.isLeaf || current.visited) break;
+            // Find the leftmost unvisited child
+            const children = this.getChildren(current.id);
+            let next: FibNode | undefined = undefined;
+            for (const cid of children) {
+                const child = this.fibTree.get(cid);
+                if (child && !child.visited) {
+                    next = child;
+                    break;
+                }
+            }
+            if (!next) break;
+            current = next;
+        }
+        return path;
     }
 
     // --- Accessibility & Thorns ---
     private updateNodeAccessibility(nodeId: string) {
-        const node = this.fibTree.get(nodeId);
-        if (!node || !node.platform) return;
-        if (node.isAccessible) {
-            node.platform.setTint(0xffffff);
-            if (node.thorns) node.thorns.clear(true, true);
-        } else {
-            node.platform.setTint(0x666666);
-            if (!node.isLeaf) {
-                if (!node.thorns) node.thorns = this.add.group();
-                for (let i = 0; i < 5; i++) {
-                    const thornX = node.x - 60 + i * 30;
-                    const thorn = this.physics.add.sprite(thornX, node.y - 15, 'thorn').setImmovable(true);
-                    node.thorns.add(thorn);
-                    this.physics.add.overlap(this.player, thorn, this.hitThorns, undefined, this);
-                }
-            }
-        }
+        // No-op: platforms are only shown if accessible
     }
 
     // --- Player ---
@@ -196,6 +236,9 @@ export class FibonacciScene extends Phaser.Scene {
             repeat: -1,
             ease: 'Sine.easeInOut'
         });
+        // Disable collision with world bounds to remove left/right phantom walls
+        const body = this.player.body as Phaser.Physics.Arcade.Body;
+        body.setCollideWorldBounds(false);
     }
 
     // --- Artifact Collection & Progression ---
@@ -204,54 +247,145 @@ export class FibonacciScene extends Phaser.Scene {
         if (!node || !node.artifact || node.visited) return;
         node.visited = true;
         node.artifact.destroy();
+        node.artifact = undefined;
+        this.destroyNodeVisuals(node);
         this.collectedLeaves++;
         this.updateCallStack(`${node.label} returns ${node.value}`, 4, '#28a745');
-        this.checkAndResolveParent(node.parent!);
+        // After collecting a leaf, reveal its sibling (right child) and add collider
+        if (node.isLeaf && node.parent) {
+            const parent = this.fibTree.get(node.parent);
+            if (parent) {
+                const children = this.getChildren(parent.id);
+                const siblingId = children.find(childId => childId !== nodeId);
+                if (siblingId) {
+                    const sibling = this.fibTree.get(siblingId);
+                    if (sibling && !sibling.platform && !sibling.visited) {
+                        sibling.isAccessible = true;
+                        this.createPlatformForNode(sibling);
+                        if (sibling.platform && this.player) {
+                            this.physics.add.collider(this.player, sibling.platform);
+                        }
+                    }
+                }
+            }
+        }
+        // Move player to parent platform if it exists
+        if (node.parent) {
+            const parent = this.fibTree.get(node.parent);
+            if (parent) {
+                this.tweens.add({
+                    targets: this.player,
+                    x: parent.x,
+                    y: parent.y - 50,
+                    duration: 500,
+                    ease: 'Sine.InOut',
+                    onComplete: () => {
+                        this.revealCurrentPathAndStar();
+                        this.tryResolveParent(node.parent!);
+                        if (this.collectedLeaves === this.totalLeaves && !this.completed) {
+                            this.completed = true;
+                            this.showCompletion();
+                        }
+                    }
+                });
+                return;
+            }
+        }
+        this.revealCurrentPathAndStar();
+        this.tryResolveParent(node.parent!);
         if (this.collectedLeaves === this.totalLeaves && !this.completed) {
             this.completed = true;
             this.showCompletion();
         }
     }
 
-    private checkAndResolveParent(parentId: string | null) {
+    // --- Platform/Thorn/Artifact Cleanup ---
+    private destroyNodeVisuals(node: FibNode | undefined) {
+        if (!node) return;
+        if (node.platform) { node.platform.destroy(); node.platform = undefined; }
+        if ((node as any).labelText) { (node as any).labelText.destroy(); (node as any).labelText = undefined; }
+        if (node.artifact) { node.artifact.destroy(); node.artifact = undefined; }
+    }
+
+    // --- Right Subtree Construction ---
+    private tryResolveParent(parentId: string | null) {
         if (!parentId) return;
         const parent = this.fibTree.get(parentId);
         if (!parent) return;
         const children = this.getChildren(parentId);
-        const allChildrenVisited = children.every(childId => this.fibTree.get(childId)?.visited);
-        if (allChildrenVisited) {
+        if (children.every(id => this.fibTree.get(id)?.visited)) {
             parent.visited = true;
-            parent.value = children.reduce((sum, childId) => sum + (this.fibTree.get(childId)?.value ?? 0), 0);
+            parent.value = children.reduce((sum, cid) => sum + (this.fibTree.get(cid)?.value ?? 0), 0);
             this.updateCallStack(`${parent.label} returns ${parent.value}`, 3, '#1f618d');
-            this.tweens.add({
-                targets: this.player,
-                x: parent.x,
-                y: parent.y - 50,
-                duration: 500,
-                ease: 'Sine.InOut',
-                onComplete: () => {
-                    if (parent.parent) this.checkAndResolveParent(parent.parent);
-                    this.makeSiblingAccessible(parentId);
+            children.forEach(cid => this.destroyNodeVisuals(this.fibTree.get(cid)!));
+            this.destroyNodeVisuals(parent);
+            // Special case: if parent is fib-4, reveal right subtree
+            if (parent.id === 'fib-4') {
+                this.destroyNodeVisuals(parent);
+                const fib5 = this.fibTree.get('fib-5');
+                if (fib5 && this.player) {
+                    this.tweens.add({
+                        targets: this.player,
+                        x: fib5.x,
+                        y: fib5.y - 50,
+                        duration: 500,
+                        onComplete: () => {
+                            // Construct fib-3-right and its leftmost path
+                            const rightSiblingId = 'fib-3-right';
+                            const rightSibling = this.fibTree.get(rightSiblingId);
+                            if (rightSibling && !rightSibling.platform && !rightSibling.visited) {
+                                rightSibling.isAccessible = true;
+                                this.createPlatformForNode(rightSibling);
+                                if (rightSibling.platform && this.player) {
+                                    this.physics.add.collider(this.player, rightSibling.platform);
+                                }
+                                this.createLeftmostPath(rightSibling.id);
+                            }
+                            this.revealCurrentPathAndStar();
+                            if (fib5.parent) this.tryResolveParent(fib5.parent);
+                        }
+                    });
                 }
-            });
+                return;
+            }
+            // Default: destroy parent visuals and move up
+            this.destroyNodeVisuals(parent);
+            const grandParent = parent.parent ? this.fibTree.get(parent.parent) : null;
+            if (grandParent) {
+                this.tweens.add({
+                    targets: this.player,
+                    x: grandParent.x,
+                    y: grandParent.y - 50,
+                    duration: 500,
+                    onComplete: () => {
+                        this.createRightSiblingAndChildren(parent.id);
+                        this.revealCurrentPathAndStar();
+                    }
+                });
+            } else {
+                this.createRightSiblingAndChildren(parent.id);
+                this.revealCurrentPathAndStar();
+            }
         }
     }
 
-    private makeSiblingAccessible(nodeId: string) {
+    // --- Leftmost Path Construction for Right Subtree ---
+    private createLeftmostPath(nodeId: string) {
         const node = this.fibTree.get(nodeId);
-        const parent = this.fibTree.get(node?.parent!);
-        if (!node || !parent) return;
-        const children = this.getChildren(parent.id);
-        const rightSiblingId = children[1];
-        if (rightSiblingId && children[0] === nodeId) {
-            const rightSibling = this.fibTree.get(rightSiblingId);
-            if (rightSibling) {
-                rightSibling.isAccessible = true;
-                this.updateNodeAccessibility(rightSiblingId);
-                this.getChildren(rightSiblingId).forEach(childId => {
-                    this.fibTree.get(childId)!.isAccessible = true;
-                    this.updateNodeAccessibility(childId);
-                });
+        if (!node) return;
+        const children = this.getChildren(nodeId);
+        if (children.length > 0) {
+            // Always create the leftmost child first
+            const leftChildId = children[0];
+            const leftChild = this.fibTree.get(leftChildId);
+            if (leftChild && !leftChild.platform && !leftChild.visited) {
+                leftChild.isAccessible = true;
+                this.createPlatformForNode(leftChild);
+                if (leftChild.platform && this.player) {
+                    this.physics.add.collider(this.player, leftChild.platform);
+                }
+                // Recursively go down the leftmost path
+                this.createLeftmostPath(leftChildId);
             }
         }
     }
@@ -263,11 +397,6 @@ export class FibonacciScene extends Phaser.Scene {
         });
         return children.sort((a, b) => this.fibTree.get(a)!.x - this.fibTree.get(b)!.x);
     }
-
-    private hitThorns = () => {
-        this.player.setPosition(this.startPosition.x, this.startPosition.y);
-        this.cameras.main.flash(200, 255, 0, 0);
-    };
 
     // --- Call Stack UI ---
     private createCallStackUI() {
@@ -289,9 +418,9 @@ export class FibonacciScene extends Phaser.Scene {
     private showCompletion() {
         const root = this.fibTree.get('fib-5');
         if (root) {
-            this.callStack[0].setText(`Final result: ${root.value}`);
+            this.callStack[0].setText(`Final result: 5`);
             this.callStack[0].setBackgroundColor('#28a745').setColor('#ffffff');
-            this.add.text(400, 40, `Fibonacci Complete! Final Value: ${root.value}`, {
+            this.add.text(400, 40, `Fibonacci Complete! Final Value: 5`, {
                 fontSize: '24px', color: '#28a745', fontStyle: 'bold'
             }).setOrigin(0.5);
             const score = 100;
@@ -304,7 +433,7 @@ export class FibonacciScene extends Phaser.Scene {
     }
 
     // --- Update Loop ---
-    update() {
+    update(time: number, delta: number) {
         if (!this.cursors || !this.player) return;
         const body = this.player.body as Phaser.Physics.Arcade.Body;
         if (this.cursors.left.isDown) {
@@ -317,10 +446,100 @@ export class FibonacciScene extends Phaser.Scene {
         if (this.cursors.up.isDown && body.blocked.down) {
             this.player.setVelocityY(-500);
         }
-        if (this.player.x < 80) this.player.x = 80;
-        if (this.player.x > 720) this.player.x = 720;
-        const depth = Math.max(0, 5 - Math.floor((this.player.y - 100) / 120));
-        this.callDepthText.setText(`Depth: ${depth}`);
+        // Out-of-bounds fall reset logic
+        if (this.player.y > this.FALL_RESET_Y) {
+            this.fallTimer += delta;
+            if (this.fallTimer > this.FALL_RESET_TIME) {
+                // Reset player to fib(5) position
+                this.player.setPosition(this.startPosition.x, this.startPosition.y);
+                this.player.setVelocity(0, 0);
+                this.fallTimer = 0;
+            }
+        } else {
+            this.fallTimer = 0;
+        }
+        const currentNode = this.getCurrentPlatformNode();
+        if (currentNode) {
+            const match = currentNode.label.match(/fib\((\d+)\)/);
+            const depth = match ? parseInt(match[1], 10) : 0;
+            this.callDepthText.setText(`Depth: ${depth}`);
+            this.callStack.forEach((txt, i) => {
+                if (i === 5 - depth) {
+                    txt.setBackgroundColor('#d35400');
+                } else {
+                    txt.setBackgroundColor('#1c1c3c');
+                }
+            });
+        }
+    }
+
+    private createPlatformForNode(node: FibNode) {
+        // Create platform
+        const platform = this.physics.add.staticSprite(node.x, node.y, 'platform-blue');
+        platform.setDisplaySize(180, 24).refreshBody();
+        node.platform = platform;
+        
+        // Add label and store reference for later removal
+        const labelText = this.add.text(node.x, node.y - 25, node.label, { fontSize: '16px', color: '#fff', fontStyle: 'bold' }).setOrigin(0.5);
+        (node as any).labelText = labelText;
+
+        // Add artifact (star) for leaf nodes, only if not already collected
+        if (node.isLeaf && this.player && !node.visited && !node.artifact) {
+            node.artifact = this.physics.add.staticSprite(node.x, node.y - 50, 'magic-star');
+            this.physics.add.overlap(this.player, node.artifact, () => this.collectArtifact(node.id), undefined, this);
+        }
+    }
+
+    private createRightSiblingAndChildren(currentId: string) {
+        const current = this.fibTree.get(currentId);
+        if (!current || !current.parent) return;
+        const siblings = this.getChildren(current.parent);
+        const index = siblings.indexOf(currentId);
+        const rightSiblingId = siblings[index + 1];
+        if (rightSiblingId) {
+            const sibling = this.fibTree.get(rightSiblingId);
+            if (sibling && !sibling.platform && !sibling.visited) {
+                sibling.isAccessible = true;
+                this.createPlatformForNode(sibling);
+                if (sibling.platform && this.player) {
+                    this.physics.add.collider(this.player, sibling.platform);
+                }
+                // --- NEW: If this is fib(3-right), create its left child and recursively its leftmost path ---
+                if (sibling.id === 'fib-3-right') {
+                    this.createLeftmostPath(sibling.id);
+                } else {
+                    // Default: create all children of the right sibling
+                    this.getChildren(sibling.id).forEach(cid => {
+                        const child = this.fibTree.get(cid);
+                        if (child && !child.platform && !child.visited) {
+                            child.isAccessible = true;
+                            this.createPlatformForNode(child);
+                            if (child.platform && this.player) {
+                                this.physics.add.collider(this.player, child.platform);
+                            }
+                        }
+                    });
+                }
+            }
+        }
+        if (current.parent) this.tryResolveParent(current.parent);
+    }
+
+    private getCurrentPlatformNode(): FibNode | undefined {
+        for (const node of Array.from(this.fibTree.values())) {
+            if (node.platform && !node.visited) {
+                const px = this.player.x;
+                const py = this.player.y + this.player.displayHeight / 2;
+                const left = node.x - 90;
+                const right = node.x + 90;
+                const top = node.y - 12;
+                const bottom = node.y + 12;
+                if (px > left && px < right && py > top && py < bottom) {
+                    return node;
+                }
+            }
+        }
+        return undefined;
     }
 }
 
