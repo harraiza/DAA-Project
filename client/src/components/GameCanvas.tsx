@@ -1,35 +1,10 @@
 import React, { useEffect, useRef } from 'react';
 import Phaser from 'phaser';
-import { GameLevel } from '../context/GameContext';
-import { FactorialScene } from '../game/scenes/FactorialScene';
-import { FibonacciScene } from '../game/scenes/FibonacciScene';
 
 interface GameCanvasProps {
-  level: GameLevel;
-  onGameEnd: (score: number) => void;
+  level: any; // LevelMeta from levels.ts
+  onGameEnd: (score: number, levelId: number) => void;
 }
-
-const getSceneForLevel = (levelId: number) => {
-  switch (levelId) {
-    case 1:
-      return FactorialScene;
-    case 2:
-      return FibonacciScene;
-    default:
-      return FactorialScene;
-  }
-};
-
-const getSceneKeyForLevel = (levelId: number) => {
-  switch (levelId) {
-    case 1:
-      return 'FactorialScene';
-    case 2:
-      return 'FibonacciScene';
-    default:
-      return 'FactorialScene';
-  }
-};
 
 const GameCanvas: React.FC<GameCanvasProps> = ({ level, onGameEnd }) => {
   const gameRef = useRef<Phaser.Game | null>(null);
@@ -38,7 +13,8 @@ const GameCanvas: React.FC<GameCanvasProps> = ({ level, onGameEnd }) => {
   useEffect(() => {
     if (!canvasRef.current || gameRef.current) return;
 
-    const sceneKey = getSceneKeyForLevel(level.id);
+    const sceneKey = level.sceneKey;
+    const SceneClass = level.component;
 
     const config: Phaser.Types.Core.GameConfig = {
       type: Phaser.AUTO,
@@ -53,7 +29,7 @@ const GameCanvas: React.FC<GameCanvasProps> = ({ level, onGameEnd }) => {
           debug: false
         }
       },
-      scene: getSceneForLevel(level.id),
+      scene: SceneClass,
       scale: {
         mode: Phaser.Scale.FIT,
         autoCenter: Phaser.Scale.CENTER_BOTH,
@@ -63,18 +39,19 @@ const GameCanvas: React.FC<GameCanvasProps> = ({ level, onGameEnd }) => {
       render: {
         pixelArt: false,
         antialias: true
+      },
+      dom: {
+        createContainer: true
       }
     };
 
     gameRef.current = new Phaser.Game(config);
 
-    // After the game is created, get the scene instance and pass data to it.
-    // We listen for the 'ready' event to ensure the scene is available.
     gameRef.current.events.on('ready', () => {
       const scene = gameRef.current?.scene.getScene(sceneKey);
       if (scene) {
         (scene as any).levelData = level;
-        (scene as any).onGameEnd = onGameEnd;
+        (scene as any).onGameEnd = (score: number) => onGameEnd(score, level.id);
       }
     });
 

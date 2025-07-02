@@ -7,10 +7,10 @@ import {
   ArrowLeftIcon,
   AcademicCapIcon,
   PlayIcon,
-  PauseIcon,
   ArrowPathIcon
 } from '@heroicons/react/24/outline';
 import localStorageService from '../services/localStorage';
+import { LEVELS } from '../game/levels';
 
 // --- Level Complete Modal ---
 const LevelCompleteModal: React.FC<{
@@ -21,7 +21,8 @@ const LevelCompleteModal: React.FC<{
   isReplay: boolean;
   score: number;
   maxScore: number;
-}> = ({ open, onClose, onNext, onReplay, isReplay, score, maxScore }) => {
+  nextLevelTitle?: string;
+}> = ({ open, onClose, onNext, onReplay, isReplay, score, maxScore, nextLevelTitle }) => {
   if (!open) return null;
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-70">
@@ -41,6 +42,10 @@ const LevelCompleteModal: React.FC<{
         ) : (
           <>
             <p className="text-gray-300 mb-4 text-sm">You've successfully completed the level!</p>
+            <div className="text-green-400 font-bold text-lg mb-2">+{score} XP</div>
+            {nextLevelTitle && (
+              <div className="text-blue-300 text-base mt-2">Next: {nextLevelTitle}</div>
+            )}
           </>
         )}
         <div className="space-y-3 mt-4">
@@ -81,35 +86,11 @@ const GameLevel: React.FC = () => {
   const [isReplayModal, setIsReplayModal] = useState(false);
 
   const levelIdNum = parseInt(levelId || '1');
-  const currentLevel = state.levels.find(l => l.id === levelIdNum);
-
-  const levelData = {
-    1: {
-      title: "Recursive Factorial",
-      subtitle: "Factorial Chamber",
-      description: "Solve the factorial problem using recursion to escape the chamber.",
-      algorithm: "Recursion (Factorial)",
-      timeComplexity: "O(n)",
-      spaceComplexity: "O(n)",
-      tutorial: "Click on numbers to make recursive function calls. Watch the call stack grow and understand how recursion works for factorial.",
-      objective: "Complete the recursive sequence to unlock the exit door."
-    },
-    2: {
-      title: "Recursive Fibonacci",
-      subtitle: "Fibonacci Chamber",
-      description: "Solve the Fibonacci sequence using recursion to unlock the next chamber.",
-      algorithm: "Recursion (Fibonacci)",
-      timeComplexity: "O(2^n)",
-      spaceComplexity: "O(n)",
-      tutorial: "Navigate the Fibonacci tree and collect values to understand recursive calls.",
-      objective: "Collect all Fibonacci values to complete the sequence."
-    }
-  };
-
-  const levelInfo = levelData[levelIdNum as keyof typeof levelData] || levelData[1];
+  const currentLevel = LEVELS.find(l => l.id === levelIdNum);
+  const nextLevel = LEVELS.find(l => l.id === levelIdNum + 1);
 
   useEffect(() => {
-    if (currentLevel && !currentLevel.isUnlocked) {
+    if (currentLevel && currentLevel.unlocksAtLevel && !state.user?.completedLevels?.some(l => l.levelId === currentLevel.unlocksAtLevel)) {
       navigate('/');
       return;
     }
@@ -118,24 +99,13 @@ const GameLevel: React.FC = () => {
     setCurrentPhase('intro');
     setShowCompletionModal(false);
     dispatch({ type: 'SET_CURRENT_LEVEL', payload: levelIdNum });
-  }, [levelIdNum, currentLevel, navigate, dispatch]);
-
-  useEffect(() => {
-    if (state.levels) {
-      const nextLevel = state.levels.find(l => l.id === levelIdNum + 1);
-    }
-  }, [currentLevel, state.levels, levelIdNum]);
+  }, [levelIdNum, currentLevel, navigate, dispatch, state.user]);
 
   const startGame = () => {
     setIsGameActive(true);
     setShowTutorial(false);
     setCurrentPhase('gameplay');
     dispatch({ type: 'START_GAME' });
-  };
-
-  const pauseGame = () => {
-    setIsGameActive(false);
-    dispatch({ type: 'END_GAME' });
   };
 
   const resetGame = () => {
@@ -151,34 +121,37 @@ const GameLevel: React.FC = () => {
     localStorageService.saveGameState(newSession);
   };
 
-  const handleGameEnd = (score: number) => {
+  const handleGameEnd = (score: number, sceneLevelId?: number) => {
     setIsGameActive(false);
     setCurrentPhase('complete');
     updateGameSession(score);
     setLastScore(score);
-    const isReplay = currentLevel?.isCompleted || false;
+    const usedLevelId = sceneLevelId || levelIdNum;
+    const isReplay = state.user?.completedLevels?.some(l => l.levelId === usedLevelId) || false;
     setIsReplayModal(isReplay);
     if (!isReplay) {
       dispatch({ 
         type: 'COMPLETE_LEVEL', 
         payload: {
-          levelId: levelIdNum,
+          levelId: usedLevelId,
           score,
           timeSpent: 0,
           hintsUsed: 0
         }
       });
+      dispatch({ type: 'LOAD_PROGRESS' });
     } else {
       dispatch({ 
         type: 'REPLAY_LEVEL', 
         payload: {
-          levelId: levelIdNum,
+          levelId: usedLevelId,
           score,
           timeSpent: 0,
           hintsUsed: 0
         }
       });
     }
+    setShowCompletionModal(true);
   };
 
   const handleReplay = () => {
@@ -197,18 +170,49 @@ const GameLevel: React.FC = () => {
 
   const handleNextLevel = () => {
     setShowCompletionModal(false);
-    if (levelIdNum < state.levels.length) {
+    if (levelIdNum < LEVELS.length) {
       navigate(`/level/${levelIdNum + 1}`);
     } else {
       navigate('/dashboard');
     }
   };
 
+  // Progress checks
+  const completedLevels = state.user?.completedLevels || [];
+  const isCompleted = completedLevels.some(l => l.levelId === levelIdNum);
+  const score = completedLevels.find(l => l.levelId === levelIdNum)?.score || 0;
+
+  // Construct a GameLevel object for GameUI
+  const gameLevelForUI = currentLevel ? {
+    ...currentLevel,
+    isUnlocked: !currentLevel.unlocksAtLevel || completedLevels.some(l => l.levelId === currentLevel.unlocksAtLevel),
+    isCompleted,
+    score,
+    maxScore: currentLevel.maxScore,
+    algorithm: currentLevel.algorithm,
+    difficulty: currentLevel.difficulty,
+    timeComplexity: currentLevel.timeComplexity,
+    spaceComplexity: currentLevel.spaceComplexity,
+    title: currentLevel.title,
+    description: currentLevel.description,
+  } : undefined;
+
   useEffect(() => {
-    if (currentLevel?.isCompleted && currentPhase === 'complete') {
+    if (isCompleted && currentPhase === 'complete') {
       setShowCompletionModal(true);
     }
-  }, [currentLevel?.isCompleted, currentPhase]);
+  }, [isCompleted, currentPhase]);
+
+  // Find next level title
+  const nextLevelTitle = nextLevel ? nextLevel.title : undefined;
+
+  // Use currentLevel for all info
+  const tutorial = currentLevel?.tutorial || 'Follow the on-screen instructions to complete the level.';
+  const objective = currentLevel?.objective || 'Complete the level objective.';
+  const title = currentLevel?.name || '';
+  const subtitle = currentLevel?.description || '';
+  const timeComplexity = currentLevel?.timeComplexity || '';
+  const spaceComplexity = currentLevel?.spaceComplexity || '';
 
   if (!currentLevel) {
     return (
@@ -238,7 +242,7 @@ const GameLevel: React.FC = () => {
           <span>Back to Academy</span>
         </button>
         
-        <span className="text-white font-bold text-lg ml-50">Level {currentLevel.id}: {currentLevel.title}</span>
+        <span className="text-white font-bold text-lg ml-50">Level {currentLevel.id}: {currentLevel.name}</span>
         
         {!showTutorial && (
           <button
@@ -252,17 +256,73 @@ const GameLevel: React.FC = () => {
 
       {/* Game Canvas and Overlayed Start/Reset Button */}
       <div className="relative w-full max-w-4xl flex flex-col items-center z-10">
-        {/* Game Canvas: Only mount when game is active */}
-        {isGameActive && (
+        {/* Game Canvas or Tutorial Overlay: Only one is shown at a time */}
+        {showTutorial ? (
+          <div className="w-full aspect-[16/9] bg-gradient-to-br from-yellow-500/90 to-yellow-700/90 shadow-2xl rounded-xl p-6 border border-purple-500/30 flex flex-col items-center justify-center">
+            <button
+              onClick={() => setShowTutorial(false)}
+              className="absolute top-2 right-2 text-white bg-black/30 hover:bg-black/60 rounded-full p-1 shadow"
+              aria-label="Close tutorial"
+            >
+              ×
+            </button>
+            <div className="text-center mb-4">
+              <AcademicCapIcon className="h-12 w-12 text-purple-400 mx-auto mb-2" />
+              <h2 className="text-2xl font-bold text-white mb-1">{title}</h2>
+              <p className="text-purple-200 font-medium">{subtitle}</p>
+            </div>
+            <div className="space-y-3 mb-4">
+              <div>
+                <h3 className="text-base font-semibold text-white mb-1">Objective</h3>
+                <p className="text-gray-100 text-sm">{objective}</p>
+              </div>
+              <div>
+                <h3 className="text-base font-semibold text-white mb-1">How to Play</h3>
+                <p className="text-gray-100 text-sm">{tutorial}</p>
+              </div>
+              <div className="grid grid-cols-2 gap-2">
+                <div className="bg-white/10 rounded-lg p-2">
+                  <div className="text-xs text-gray-200">Time Complexity</div>
+                  <div className="text-blue-200 font-mono text-sm">{timeComplexity}</div>
+                </div>
+                <div className="bg-white/10 rounded-lg p-2">
+                  <div className="text-xs text-gray-200">Space Complexity</div>
+                  <div className="text-green-200 font-mono text-sm">{spaceComplexity}</div>
+                </div>
+              </div>
+              <div className="bg-black/20 rounded-lg p-3 mt-2">
+                <h3 className="text-base font-semibold text-white mb-1">Controls</h3>
+                <ul className="text-gray-100 text-sm list-disc list-inside">
+                  {currentLevel?.controls && currentLevel.controls.length > 0 ? (
+                    currentLevel.controls.map((ctrl, idx) => (
+                      <li key={idx}>{ctrl.label}: <span className="font-mono">{ctrl.value}</span></li>
+                    ))
+                  ) : (
+                    <>
+                      <li>Move: <span className="font-mono">←/→</span></li>
+                      <li>Jump: <span className="font-mono">↑</span></li>
+                    </>
+                  )}
+                </ul>
+              </div>
+            </div>
+            <div className="flex justify-center mt-2">
+              <button
+                onClick={() => setShowTutorial(false)}
+                className="flex items-center space-x-2 bg-gradient-to-r from-purple-600 to-purple-800 hover:from-purple-700 hover:to-purple-900 text-white px-6 py-2 rounded-lg shadow-lg text-base font-semibold transition-colors"
+              >
+                <span>Got it!</span>
+              </button>
+            </div>
+          </div>
+        ) : isGameActive ? (
           <div className="w-full aspect-[16/9] bg-black rounded-xl overflow-hidden shadow-2xl flex items-center justify-center relative z-10">
             <GameCanvas
               level={currentLevel}
-              onGameEnd={handleGameEnd}
+              onGameEnd={(score) => handleGameEnd(score, levelIdNum)}
             />
           </div>
-        )}
-        {/* Overlay Start Button when not active - positioned lower */}
-        {!isGameActive && !showTutorial && (
+        ) : (
           <div className="w-full aspect-[16/9] bg-black rounded-xl overflow-hidden shadow-2xl flex items-center justify-center relative z-10">
             <div className="flex flex-col items-center justify-center h-full">
               <div className="flex-grow"></div>
@@ -287,64 +347,10 @@ const GameLevel: React.FC = () => {
             <span>Reset</span>
           </button>
         )}
-        {/* Tutorial Overlay */}
-        {showTutorial && (
-          <div className="absolute inset-0 z-40 bg-black/70 backdrop-blur-sm flex items-center justify-center">
-            <div className="bg-gradient-to-br from-yellow-500/90 to-yellow-700/90 shadow-2xl rounded-xl p-6 max-w-md mx-4 border border-purple-500/30 relative mt-60">
-              <button
-                onClick={() => setShowTutorial(false)}
-                className="absolute top-2 right-2 text-white bg-black/30 hover:bg-black/60 rounded-full p-1 shadow"
-                aria-label="Close tutorial"
-              >
-                ×
-              </button>
-              <div className="text-center mb-4">
-                <AcademicCapIcon className="h-12 w-12 text-purple-400 mx-auto mb-2" />
-                <h2 className="text-2xl font-bold text-white mb-1">{levelInfo.title}</h2>
-                <p className="text-purple-200 font-medium">{levelInfo.subtitle}</p>
-              </div>
-              <div className="space-y-3 mb-4">
-                <div>
-                  <h3 className="text-base font-semibold text-white mb-1">Objective</h3>
-                  <p className="text-gray-100 text-sm">{levelInfo.objective}</p>
-                </div>
-                <div>
-                  <h3 className="text-base font-semibold text-white mb-1">How to Play</h3>
-                  <p className="text-gray-100 text-sm">{levelInfo.tutorial}</p>
-                </div>
-                <div className="grid grid-cols-2 gap-2">
-                  <div className="bg-white/10 rounded-lg p-2">
-                    <div className="text-xs text-gray-200">Time Complexity</div>
-                    <div className="text-blue-200 font-mono text-sm">{levelInfo.timeComplexity}</div>
-                  </div>
-                  <div className="bg-white/10 rounded-lg p-2">
-                    <div className="text-xs text-gray-200">Space Complexity</div>
-                    <div className="text-green-200 font-mono text-sm">{levelInfo.spaceComplexity}</div>
-                  </div>
-                </div>
-                <div className="bg-black/20 rounded-lg p-3 mt-2">
-                  <h3 className="text-base font-semibold text-white mb-1">Controls</h3>
-                  <ul className="text-gray-100 text-sm list-disc list-inside">
-                    <li>Move: <span className="font-mono">←/→</span></li>
-                    <li>Jump: <span className="font-mono">↑</span></li>
-                  </ul>
-                </div>
-              </div>
-              <div className="flex justify-center mt-2">
-                <button
-                  onClick={() => setShowTutorial(false)}
-                  className="flex items-center space-x-2 bg-gradient-to-r from-purple-600 to-purple-800 hover:from-purple-700 hover:to-purple-900 text-white px-6 py-2 rounded-lg shadow-lg text-base font-semibold transition-colors"
-                >
-                  <span>Got it!</span>
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
       </div>
       {/* Game UI */}
-      {isGameActive && (
-        <GameUI level={currentLevel} isGameActive={isGameActive} onReplay={handleReplay} sessionScore={gameSession.currentScore} isReplay={currentLevel?.isCompleted} />
+      {isGameActive && gameLevelForUI && (
+        <GameUI level={gameLevelForUI} isGameActive={isGameActive} onReplay={handleReplay} sessionScore={gameSession.currentScore} isReplay={isCompleted} />
       )}
       {/* Level Complete Modal */}
       <LevelCompleteModal
@@ -355,6 +361,7 @@ const GameLevel: React.FC = () => {
         isReplay={isReplayModal}
         score={lastScore}
         maxScore={currentLevel?.maxScore || 100}
+        nextLevelTitle={nextLevelTitle}
       />
     </div>
   );

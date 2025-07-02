@@ -8,36 +8,15 @@ import {
   SparklesIcon,
   AcademicCapIcon
 } from '@heroicons/react/24/outline';
+import { LEVELS, LevelMeta } from '../game/levels';
 
 const GameHome: React.FC = () => {
   const { state } = useGame();
 
-  const gameLevels = [
-    {
-      id: 1,
-      title: "Recursive Factorial",
-      subtitle: "Escape Room with Call Stack Traps",
-      description: "Master the art of recursive magic and understand time complexity as you navigate through call stack traps.",
-      difficulty: "Beginner",
-      isUnlocked: true,
-      stars: 0,
-      algorithm: "Recursion",
-      timeComplexity: "O(n)",
-      spaceComplexity: "O(n)"
-    },
-    {
-      id: 2,
-      title: "Recursive Fibonacci",
-      subtitle: "Fibonacci Chamber",
-      description: "Solve the Fibonacci sequence using recursion to unlock the next chamber.",
-      difficulty: "Beginner",
-      isUnlocked: state.user?.completedLevels?.some(l => l.levelId === 1) || false,
-      stars: 0,
-      algorithm: "Recursion (Fibonacci)",
-      timeComplexity: "O(2^n)",
-      spaceComplexity: "O(n)"
-    }
-  ];
+  // Compute gameLevels from LEVELS metadata and user progress
+  const completedLevels = state.user?.completedLevels || [];
+  // Use LEVELS directly for rendering
+  const getDifficulty = (level: LevelMeta) => level.difficulty.charAt(0).toUpperCase() + level.difficulty.slice(1);
 
   const getDifficultyColor = (difficulty: string) => {
     switch (difficulty) {
@@ -73,71 +52,79 @@ const GameHome: React.FC = () => {
           <h2 className="text-3xl font-bold text-white mb-8 text-center">Choose Your Quest</h2>
           
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {gameLevels.map((level) => (
-              <div
-                key={level.id}
-                className={`relative bg-white/10 backdrop-blur-sm rounded-xl p-6 border transition-all duration-300 hover:scale-105 ${
-                  level.isUnlocked
-                    ? 'border-purple-500/50 hover:border-purple-400/70 cursor-pointer'
-                    : 'border-gray-600/50 opacity-60 cursor-not-allowed'
-                }`}
-              >
-                {!level.isUnlocked && (
-                  <div className="absolute inset-0 bg-black/50 rounded-xl flex items-center justify-center">
-                    <LockClosedIcon className="h-12 w-12 text-gray-400" />
-                  </div>
-                )}
-
-                <div className="mb-4">
-                  <div className="flex items-center justify-between mb-2">
-                    <h3 className="text-xl font-bold text-white">{level.title}</h3>
-                    <span className={`px-2 py-1 rounded-full text-xs font-medium border ${getDifficultyColor(level.difficulty)}`}>
-                      {level.difficulty}
-                    </span>
-                  </div>
-                  <p className="text-purple-300 text-sm font-medium mb-2">{level.subtitle}</p>
-                  <p className="text-gray-300 text-sm">{level.description}</p>
-                </div>
-
-                <div className="space-y-2 mb-4">
-                  <div className="flex justify-between text-xs text-gray-400">
-                    <span>Algorithm:</span>
-                    <span className="text-purple-300">{level.algorithm}</span>
-                  </div>
-                  <div className="flex justify-between text-xs text-gray-400">
-                    <span>Time Complexity:</span>
-                    <span className="text-blue-300">{level.timeComplexity}</span>
-                  </div>
-                  <div className="flex justify-between text-xs text-gray-400">
-                    <span>Space Complexity:</span>
-                    <span className="text-green-300">{level.spaceComplexity}</span>
-                  </div>
-                </div>
-
-                {/* Stars */}
-                <div className="flex items-center justify-between mb-4">
-                  <div className="flex space-x-1">
-                    {[1, 2, 3].map((star) => (
-                      <StarIcon
-                        key={star}
-                        className={`h-5 w-5 ${
-                          star <= level.stars ? 'text-yellow-400 fill-current' : 'text-gray-500'
-                        }`}
-                      />
-                    ))}
-                  </div>
-                  {level.isUnlocked && (
-                    <Link
-                      to={`/level/${level.id}`}
-                      className="flex items-center space-x-2 bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg transition-colors"
-                    >
-                      <PlayIcon className="h-4 w-4" />
-                      <span>Start Quest</span>
-                    </Link>
+            {LEVELS.map((level) => {
+              const completed = completedLevels.some(l => l.levelId === level.id);
+              let isUnlocked = false;
+              if (!level.unlocksAtLevel) {
+                isUnlocked = true;
+              } else {
+                isUnlocked = completedLevels.some(l => l.levelId === level.unlocksAtLevel);
+              }
+              return (
+                <div
+                  key={level.id}
+                  className={`relative bg-white/10 backdrop-blur-sm rounded-xl p-6 border transition-all duration-300 hover:scale-105 ${
+                    isUnlocked
+                      ? 'border-purple-500/50 hover:border-purple-400/70 cursor-pointer'
+                      : 'border-gray-600/50 opacity-60 cursor-not-allowed'
+                  }`}
+                >
+                  {!isUnlocked && (
+                    <div className="absolute inset-0 bg-black/50 rounded-xl flex items-center justify-center">
+                      <LockClosedIcon className="h-12 w-12 text-gray-400" />
+                    </div>
                   )}
+
+                  <div className="mb-4">
+                    <div className="flex items-center justify-between mb-2">
+                      <h3 className="text-xl font-bold text-white">{level.name}</h3>
+                      <span className={`px-2 py-1 rounded-full text-xs font-medium border ${getDifficultyColor(getDifficulty(level))}`}>
+                        {getDifficulty(level)}
+                      </span>
+                    </div>
+                    <p className="text-gray-300 text-sm">{level.description}</p>
+                  </div>
+
+                  <div className="space-y-2 mb-4">
+                    <div className="flex justify-between text-xs text-gray-400">
+                      <span>Algorithm:</span>
+                      <span className="text-purple-300">{level.algorithm}</span>
+                    </div>
+                    <div className="flex justify-between text-xs text-gray-400">
+                      <span>Time Complexity:</span>
+                      <span className="text-blue-300">{level.timeComplexity}</span>
+                    </div>
+                    <div className="flex justify-between text-xs text-gray-400">
+                      <span>Space Complexity:</span>
+                      <span className="text-green-300">{level.spaceComplexity}</span>
+                    </div>
+                  </div>
+
+                  {/* Stars */}
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="flex space-x-1">
+                      {[1, 2, 3].map((star) => (
+                        <StarIcon
+                          key={star}
+                          className={`h-5 w-5 ${
+                            star <= (completed ? 3 : 0) ? 'text-yellow-400 fill-current' : 'text-gray-500'
+                          }`}
+                        />
+                      ))}
+                    </div>
+                    {isUnlocked && (
+                      <Link
+                        to={`/level/${level.id}`}
+                        className="flex items-center space-x-2 bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg transition-colors"
+                      >
+                        <PlayIcon className="h-4 w-4" />
+                        <span>Start Quest</span>
+                      </Link>
+                    )}
+                  </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
 

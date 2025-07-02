@@ -1,4 +1,5 @@
 // Types for localStorage data
+
 export interface UserProgress {
   id: string;
   username: string;
@@ -139,16 +140,22 @@ class LocalStorageService {
     const newExperience = progress.experience + totalExperience;
     const newLevel = Math.floor(newExperience / 1000) + 1;
     
-    // Update completed levels
-    const existingCompletion = progress.completedLevels.find(c => c.levelId === levelId);
-    if (existingCompletion) {
-      if (score > existingCompletion.score) {
-        existingCompletion.score = score;
-        existingCompletion.completedAt = new Date().toISOString();
+    // Update completed levels immutably
+    let updated = false;
+    const updatedCompletedLevels = progress.completedLevels.map(c => {
+      if (c.levelId === levelId) {
+        updated = true;
+        return {
+          ...c,
+          score: Math.max(score, c.score),
+          completedAt: new Date().toISOString(),
+          attempts: c.attempts + 1
+        };
       }
-      existingCompletion.attempts += 1;
-    } else {
-      progress.completedLevels.push({
+      return c;
+    });
+    if (!updated) {
+      updatedCompletedLevels.push({
         levelId,
         score,
         completedAt: new Date().toISOString(),
@@ -156,24 +163,24 @@ class LocalStorageService {
         attempts: 1
       });
     }
+    const newProgress = { ...progress, completedLevels: updatedCompletedLevels };
     
     // Update statistics
-    progress.statistics.problemsSolved += 1;
-    progress.statistics.totalPlayTime += timeSpent;
-    progress.statistics.hintsUsed += hintsUsed;
-    progress.statistics.totalScore += score;
-    progress.statistics.bestScore = Math.max(progress.statistics.bestScore, score);
-    progress.statistics.averageScore = progress.statistics.totalScore / progress.statistics.problemsSolved;
-    progress.statistics.levelsCompleted = progress.completedLevels.length;
-    progress.statistics.lastPlayed = new Date().toISOString();
-    
+    newProgress.statistics = { ...progress.statistics };
+    newProgress.statistics.problemsSolved += 1;
+    newProgress.statistics.totalPlayTime += timeSpent;
+    newProgress.statistics.hintsUsed += hintsUsed;
+    newProgress.statistics.totalScore += score;
+    newProgress.statistics.bestScore = Math.max(progress.statistics.bestScore, score);
+    newProgress.statistics.averageScore = newProgress.statistics.totalScore / newProgress.statistics.problemsSolved;
+    newProgress.statistics.levelsCompleted = newProgress.completedLevels.length;
+    newProgress.statistics.lastPlayed = new Date().toISOString();
     // Update main progress
-    progress.experience = newExperience;
-    progress.level = newLevel;
-    progress.lastPlayed = new Date().toISOString();
-    
-    this.saveUserProgress(progress);
-    return progress;
+    newProgress.experience = newExperience;
+    newProgress.level = newLevel;
+    newProgress.lastPlayed = new Date().toISOString();
+    this.saveUserProgress(newProgress);
+    return newProgress;
   }
 
   // Unlock achievement

@@ -59,6 +59,45 @@ const allLevels: GameLevel[] = [
     maxScore: 100,
     timeComplexity: "O(2^n)",
     spaceComplexity: "O(n)"
+  },
+  {
+    id: 3,
+    title: "Bubble Sort-in-the-dark",
+    description: "Sort magical orbs in the darkness using Bubble Sort. Navigate by swapping adjacent orbs to clear your path.",
+    algorithm: "Bubble Sort",
+    difficulty: "intermediate",
+    isUnlocked: false,
+    isCompleted: false,
+    score: 0,
+    maxScore: 100,
+    timeComplexity: "O(n^2)",
+    spaceComplexity: "O(1)"
+  },
+  {
+    id: 4,
+    title: "Merge Sort-in-the-dark",
+    description: "Merge enchanted fragments in the shadows. Use Merge Sort to combine and conquer the darkness.",
+    algorithm: "Merge Sort",
+    difficulty: "intermediate",
+    isUnlocked: false,
+    isCompleted: false,
+    score: 0,
+    maxScore: 100,
+    timeComplexity: "O(n log n)",
+    spaceComplexity: "O(n)"
+  },
+  {
+    id: 5,
+    title: "Quick Sort-in-the-dark",
+    description: "Divide and conquer the night. Use Quick Sort to illuminate the path to mastery.",
+    algorithm: "Quick Sort",
+    difficulty: "intermediate",
+    isUnlocked: false,
+    isCompleted: false,
+    score: 0,
+    maxScore: 100,
+    timeComplexity: "O(n log n)",
+    spaceComplexity: "O(log n)"
   }
 ];
 
@@ -113,21 +152,16 @@ function gameReducer(state: GameState, action: GameAction): GameState {
       return { ...state, levels: updatedLevels };
     }
     case 'COMPLETE_LEVEL': {
-      console.log('COMPLETE_LEVEL action payload:', action.payload);
       const updatedUser = localStorageService.completeLevel(
         action.payload.levelId,
         action.payload.score,
         action.payload.timeSpent,
         action.payload.hintsUsed
       );
-      console.log('User progress after completion:', updatedUser);
       const updatedLevels = syncLevelsWithProgress(state.levels, updatedUser);
-      console.log('Levels after sync:', updatedLevels);
       return { ...state, user: updatedUser, levels: updatedLevels };
     }
     case 'REPLAY_LEVEL': {
-      // For replaying levels without affecting progress
-      console.log('Replaying level without rewards:', action.payload);
       return { ...state };
     }
     case 'SET_GAME_MODE':
