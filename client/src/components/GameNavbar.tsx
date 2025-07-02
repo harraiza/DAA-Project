@@ -7,6 +7,18 @@ import {
   SparklesIcon
 } from '@heroicons/react/24/outline';
 
+// Utility to get XP required for a given level
+function getXpForLevel(level: number): number {
+  return 1000 * Math.pow(2, level - 1);
+}
+function getTotalXpForLevel(level: number): number {
+  let total = 0;
+  for (let i = 1; i < level; i++) {
+    total += getXpForLevel(i);
+  }
+  return total;
+}
+
 const GameNavbar: React.FC = () => {
   const { state } = useGame();
   const location = useLocation();
@@ -24,6 +36,12 @@ const GameNavbar: React.FC = () => {
     achievements: []
   };
 
+  const currentLevel = user.level;
+  const xpForCurrentLevel = getTotalXpForLevel(currentLevel);
+  const xpForNextLevel = getTotalXpForLevel(currentLevel + 1);
+  const xpThisLevel = user.experience - xpForCurrentLevel;
+  const xpNeeded = xpForNextLevel - xpForCurrentLevel;
+
   return (
     <nav className="fixed top-0 left-0 right-0 z-50 bg-black/80 backdrop-blur-sm border-b border-purple-500/30">
       <div className="container mx-auto px-4">
@@ -31,7 +49,7 @@ const GameNavbar: React.FC = () => {
           {/* Logo */}
           <Link to="/" className="flex items-center space-x-2">
             <SparklesIcon className="h-8 w-8 text-purple-400" />
-            <span className="text-xl font-bold text-white">Algorithm Quest</span>
+            <span className="text-xl font-bold text-white">Mage Academy</span>
           </Link>
 
           {/* Navigation */}
@@ -68,7 +86,7 @@ const GameNavbar: React.FC = () => {
                 <div 
                   className="bg-gradient-to-r from-purple-500 to-blue-500 h-2 rounded-full transition-all duration-300"
                   style={{ 
-                    width: `${Math.min(100, (user.experience % 1000) / 10)}%` 
+                    width: `${Math.min(100, (xpThisLevel / xpNeeded) * 100)}%` 
                   }}
                 />
               </div>
