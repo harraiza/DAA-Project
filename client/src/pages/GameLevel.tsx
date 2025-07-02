@@ -42,7 +42,7 @@ const LevelCompleteModal: React.FC<{
         ) : (
           <>
             <p className="text-gray-300 mb-4 text-sm">You've successfully completed the level!</p>
-            <div className="text-green-400 font-bold text-lg mb-2">+{maxScore * 2} XP</div>
+            <div className="text-green-400 font-bold text-lg mb-2">+{maxScore} XP</div>
             {nextLevelTitle && (
               <div className="text-blue-300 text-base mt-2">Next: {nextLevelTitle}</div>
             )}
