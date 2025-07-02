@@ -91,6 +91,21 @@ export interface GameSessionState {
   // Add more session-specific fields as needed
 }
 
+// Utility to get XP required for a given level
+function getXpForLevel(level: number): number {
+  return 1000 * Math.pow(2, level - 1);
+}
+
+// Utility to get total XP required to reach a given level
+function getTotalXpForLevel(level: number): number {
+  // Sum of all previous level requirements
+  let total = 0;
+  for (let i = 1; i < level; i++) {
+    total += getXpForLevel(i);
+  }
+  return total;
+}
+
 class LocalStorageService {
   // Get user progress
   getUserProgress(): UserProgress {
@@ -126,19 +141,22 @@ class LocalStorageService {
   }
 
   // Complete a level
-  completeLevel(levelId: number, score: number, timeSpent: number, hintsUsed: number): UserProgress {
+  completeLevel(levelId: number, score: number, timeSpent: number, hintsUsed: number, maxScore: number): UserProgress {
     const progress = this.getUserProgress();
+    // Award XP equal to maxScore
+    const totalExperience = maxScore;
     
-    // Calculate experience
-    const baseExperience = 100;
-    const scoreBonus = Math.floor((score / 100) * 50);
-    const timeBonus = Math.max(0, 25 - Math.floor(timeSpent / 60));
-    const hintPenalty = hintsUsed * 5;
-    const totalExperience = baseExperience + scoreBonus + timeBonus - hintPenalty;
-    
-    // Update experience and level
+    // Update experience
     const newExperience = progress.experience + totalExperience;
-    const newLevel = Math.floor(newExperience / 1000) + 1;
+    // Calculate new level based on doubling XP requirements
+    let newLevel = 1;
+    let xpForNext = getXpForLevel(newLevel);
+    let xpSum = 0;
+    while (newExperience >= xpSum + xpForNext) {
+      xpSum += xpForNext;
+      newLevel++;
+      xpForNext = getXpForLevel(newLevel);
+    }
     
     // Update completed levels immutably
     let updated = false;

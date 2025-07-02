@@ -6,6 +6,19 @@ import {
   TrophyIcon,
   AcademicCapIcon
 } from '@heroicons/react/24/outline';
+import { LEVELS } from '../game/levels';
+
+// Utility to get XP required for a given level
+function getXpForLevel(level: number): number {
+  return 1000 * Math.pow(2, level - 1);
+}
+function getTotalXpForLevel(level: number): number {
+  let total = 0;
+  for (let i = 1; i < level; i++) {
+    total += getXpForLevel(i);
+  }
+  return total;
+}
 
 const GameDashboard: React.FC = () => {
   const { state, dispatch } = useGame();
@@ -59,6 +72,12 @@ const GameDashboard: React.FC = () => {
 
   const unlockedAchievements = achievements.filter(a => a.unlocked);
 
+  const currentLevel = user.level;
+  const xpForCurrentLevel = getTotalXpForLevel(currentLevel);
+  const xpForNextLevel = getTotalXpForLevel(currentLevel + 1);
+  const xpThisLevel = user.experience - xpForCurrentLevel;
+  const xpNeeded = xpForNextLevel - xpForCurrentLevel;
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-purple-900 to-gray-900">
       <div className="container mx-auto px-4 py-8">
@@ -95,12 +114,12 @@ const GameDashboard: React.FC = () => {
                     <div 
                       className="bg-gradient-to-r from-purple-500 to-blue-500 h-3 rounded-full transition-all duration-300"
                       style={{ 
-                        width: `${Math.min(100, (user.experience % 1000) / 10)}%` 
+                        width: `${Math.min(100, (xpThisLevel / xpNeeded) * 100)}%` 
                       }}
                     />
                   </div>
                   <div className="text-sm text-gray-400 mt-1">
-                    {user.experience % 1000} / 1000 XP
+                    {xpThisLevel} / {xpNeeded} XP
                   </div>
                 </div>
                 
@@ -139,12 +158,11 @@ const GameDashboard: React.FC = () => {
               <h2 className="text-2xl font-bold text-white mb-6">Quest Progress</h2>
               
               <div className="space-y-4">
-                {[1, 2, 3, 4, 5].map((levelId) => {
-                  const completion = completedLevels.find(l => l.levelId === levelId);
+                {LEVELS.map((level) => {
+                  const completion = completedLevels.find(l => l.levelId === level.id);
                   const isCompleted = !!completion;
-                  
                   return (
-                    <div key={levelId} className="flex items-center justify-between p-4 bg-white/5 rounded-lg">
+                    <div key={level.id} className="flex items-center justify-between p-4 bg-white/5 rounded-lg">
                       <div className="flex items-center space-x-4">
                         <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
                           isCompleted ? 'bg-green-500' : 'bg-gray-600'
@@ -152,31 +170,26 @@ const GameDashboard: React.FC = () => {
                           {isCompleted ? (
                             <StarIcon className="h-5 w-5 text-white" />
                           ) : (
-                            <span className="text-white font-bold">{levelId}</span>
+                            <span className="text-white font-bold">{level.id}</span>
                           )}
                         </div>
                         <div>
                           <div className="text-white font-semibold">
-                            Quest {levelId}
+                            {level.name}
                           </div>
                           {isCompleted && (
                             <div className="text-sm text-gray-300">
-                              Score: {completion.score}/100
+                              Score: {completion.score}/{level.maxScore}
                             </div>
                           )}
                         </div>
                       </div>
-                      
                       {isCompleted ? (
                         <div className="flex space-x-1">
                           {[1, 2, 3].map((star) => (
                             <StarIcon
                               key={star}
-                              className={`h-5 w-5 ${
-                                star <= Math.floor(completion.score / 33) 
-                                  ? 'text-yellow-400 fill-current' 
-                                  : 'text-gray-500'
-                              }`}
+                              className="h-5 w-5 text-yellow-400 fill-current"
                             />
                           ))}
                         </div>
